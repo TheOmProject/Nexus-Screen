@@ -4,6 +4,7 @@ from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QColor, QFont
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.moonraker import profiles
 from nexus.screens.addon_common import grid, place_buttons
 from nexus.widgets import icons
@@ -33,7 +34,7 @@ class SettingsPanel(Panel):
 
     def resizeEvent(self, e):
         w = self.width()
-        self.edit_btn.setGeometry(w - 86, 3, 78, 22)
+        self.edit_btn.setGeometry(w - sx(86), sy(3), sx(78), sy(22))
         for b, r in zip(self.value_btns, grid(self._rows_rect(), 6, 1, 2)[1:]):
             b.setGeometry(int(r.x() + 180), int(r.y() + 1), int(r.width() - 182), int(r.height() - 2))
         super().resizeEvent(e)
@@ -70,9 +71,9 @@ class FilamentProfilesScreen(SubScreen):
         self.selected = None
         self.page = 0
         self.list_panel = Panel("Profiles", self)
-        self.list_panel.setGeometry(8, 58, 300, 378)
+        self.list_panel.setGeometry(sx(8), sy(58), sx(300), sy(378))
         self.add_btn = SmallButton("+  Add Profile", parent=self.list_panel, font_px=theme.BUTTON, checkable=False)
-        self.add_btn.setGeometry(150, 3, 142, 22)
+        self.add_btn.setGeometry(sx(150), sy(3), sx(142), sy(22))
         self.add_btn.clicked.connect(self._add)
         self.rows = []
         for i in range(ROWS_PER_PAGE):
@@ -80,21 +81,21 @@ class FilamentProfilesScreen(SubScreen):
             t.setCheckable(False)
             t.clicked.connect(lambda _=False, i=i: self._select_row(i))
             self.rows.append(t)
-        place_buttons(self.rows, QRectF(2, 26, 296, 316), 1, 0)
+        place_buttons(self.rows, QRectF(sx(2), sy(26), sx(296), sy(316)), 1, 0)
         self.prev = SmallButton(icon=icons.back_arrow, parent=self.list_panel, checkable=False)
         self.next = SmallButton(icon=icons.chevron, parent=self.list_panel, checkable=False)
-        self.prev.setGeometry(8, 344, 136, 28)
-        self.next.setGeometry(156, 344, 136, 28)
+        self.prev.setGeometry(sx(8), sy(344), sx(136), sy(28))
+        self.next.setGeometry(sx(156), sy(344), sx(136), sy(28))
         self.prev.clicked.connect(lambda: self._page(-1))
         self.next.clicked.connect(lambda: self._page(1))
         self.settings = SettingsPanel(self, self)
-        self.settings.setGeometry(316, 58, 476, 300)
+        self.settings.setGeometry(sx(316), sy(58), sx(476), sy(300))
         self.actions = Panel("", self)
-        self.actions.setGeometry(316, 366, 476, 70)
+        self.actions.setGeometry(sx(316), sy(366), sx(476), sy(70))
         self.activate = ActionTile(icons.check, "Set as Active", parent=self.actions, primary=True)
         self.duplicate = ActionTile(icons.save, "Duplicate", parent=self.actions)
         self.delete = ActionTile(icons.eject, "Delete", parent=self.actions)
-        place_buttons([self.activate, self.duplicate, self.delete], QRectF(2, 2, 472, 66), 3, 0)
+        place_buttons([self.activate, self.duplicate, self.delete], QRectF(sx(2), sy(2), sx(472), sy(66)), 3, 0)
         self.activate.clicked.connect(lambda: self._save(dict(self._store(), active=self.selected)))
         self.duplicate.clicked.connect(self._duplicate)
         self.delete.clicked.connect(lambda: self.ctl.confirm(

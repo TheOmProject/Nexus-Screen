@@ -64,8 +64,38 @@ as_owner "$PY" -c "import PyQt6.QtWidgets" 2>/dev/null \
     && say "Python environment" "$PY" \
     || fail "PyQt6 not importable with $PY — see docs/INSTALLATION.md for setup instructions"
 
-# Framebuffer
-[ -c /dev/fb0 ] && say "framebuffer" "/dev/fb0" || fail "/dev/fb0 missing"
+# NumPy (required for the health check screen-luminance test)
+if ! as_owner "$PY" -c "import numpy" 2>/dev/null; then
+    say "numpy" "not found — installing"
+    if [ "$(id -u)" = 0 ]; then
+        apt-get install -y python3-numpy >/dev/null 2>&1 \
+            || as_owner "$PY" -m pip install --quiet numpy \
+            || fail "Failed to install numpy — run: sudo apt-get install python3-numpy"
+    else
+        fail "numpy not importable with $PY and not running as root to install it; run: sudo apt-get install python3-numpy"
+    fi
+    as_owner "$PY" -c "import numpy" 2>/dev/null \
+        && say "numpy" "installed" \
+        || fail "numpy still not importable after install attempt"
+else
+    say "numpy" "ok"
+fi
+
+# Framebuffer — presence, bit depth, and resolution
+[ -c /dev/fb0 ] || fail "/dev/fb0 missing"
+fb_bpp="$(cat /sys/class/graphics/fb0/bits_per_pixel 2>/dev/null || echo unknown)"
+[ "$fb_bpp" = 16 ] \
+    || fail "Unsupported framebuffer: ${fb_bpp} bits per pixel (expected 16-bit RGB565)"
+fb_vsize="$(cat /sys/class/graphics/fb0/virtual_size 2>/dev/null || echo "")"
+if [ -n "$fb_vsize" ]; then
+    FB_W="${fb_vsize%%,*}"
+    FB_H="${fb_vsize##*,}"
+else
+    FB_W=800; FB_H=480
+fi
+say "framebuffer" "/dev/fb0  ${FB_W}×${FB_H}  ${fb_bpp}-bpp"
+[ "$FB_W" = 800 ] && [ "$FB_H" = 480 ] \
+    || echo "  Notice: non-standard display (${FB_W}×${FB_H}) — adaptive scaling enabled"
 
 # Service template exists
 [ -f "$UNIT_TMPL" ] || fail "service template missing: $UNIT_TMPL"
@@ -109,6 +139,8 @@ KLIPPERSCREEN_ACTIVE=$old_active
 NEXUS_OWNER=$OWNER
 NEXUS_REPO=$REPO
 NEXUS_REPO_HEAD=$head
+FB_W=$FB_W
+FB_H=$FB_H
 EOF
 ls -l /etc/systemd/system/multi-user.target.wants/ > "$B/multi-user.target.wants.txt"
 cat > "$B/RESTORE.md" <<EOF
@@ -163,6 +195,11 @@ sed -e "s|@USER@|$OWNER|g" \
     -e "s|@HOME@|$HOME_DIR|g" \
     -e "s|@REPO@|$REPO|g" \
     "$UNIT_TMPL" > "$UNIT_GEN"
+# Inject display dimensions for non-standard resolutions so the service
+# starts with the correct scale factors on every future boot.
+if [ "$FB_W" != 800 ] || [ "$FB_H" != 480 ]; then
+    sed -i "s|^Environment=PYTHONUNBUFFERED=1|Environment=PYTHONUNBUFFERED=1\nEnvironment=NEXUS_SCREEN_W=${FB_W}\nEnvironment=NEXUS_SCREEN_H=${FB_H}|" "$UNIT_GEN"
+fi
 install -m 644 -o root -g root "$UNIT_GEN" "$UNIT_DST"
 systemctl daemon-reload
 systemctl enable --now $UNIT || rollback "systemctl enable --now failed"

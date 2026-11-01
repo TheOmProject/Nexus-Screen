@@ -5,6 +5,7 @@ from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtWidgets import QButtonGroup, QWidget
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.widgets import icons
 from nexus.widgets.buttons import SmallButton
 from nexus.widgets.dialog import _DialogButton
@@ -48,7 +49,7 @@ def validate_target(text, limits):
 
 
 class Overlay(QWidget):
-    BOX = (560, 360)
+    BOX = (sx(560), sy(360))
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -76,15 +77,15 @@ class Overlay(QWidget):
         b = self.box()
         p.drawPixmap(int(b.x()) - 10, int(b.y()) - 10, red_glow(int(b.width()), int(b.height()), 10.0, 10, 0.5))
         paint_panel(p, b, 10, alpha=250, border=QColor(120, 24, 20))
-        p.setFont(theme.font(24, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(24), QFont.Weight.Bold))
         p.setPen(theme.FG)
-        p.drawText(QRectF(b.x() + 24, b.y() + 12, b.width() - 48, 34), Qt.AlignmentFlag.AlignVCenter, title)
+        p.drawText(QRectF(b.x() + sx(24), b.y() + sy(12), b.width() - sx(48), sy(34)), Qt.AlignmentFlag.AlignVCenter, title)
         return b
 
 
 class TemperatureKeypad(Overlay):
     """Numeric keypad for a heater target. Emits confirmed(heater, value) only on Confirm."""
-    BOX = (600, 404)
+    BOX = (sx(600), sy(404))
     confirmed = pyqtSignal(str, float)
 
     KEYS = ["7", "8", "9", "4", "5", "6", "1", "2", "3", ".", "0", "back"]
@@ -139,13 +140,13 @@ class TemperatureKeypad(Overlay):
             self.update()
 
     def layout_children(self, b):
-        kx, ky, kw, kh, g = b.x() + 282, b.y() + 62, 94, 56, 9
+        kx = b.x() + sx(282); ky = b.y() + sy(62); kw = sx(94); kh = sy(56); g = smin(9)
         for i, k in enumerate(self.KEYS):
-            self.keys[k].setGeometry(int(kx + (i % 3) * (kw + g)), int(ky + (i // 3) * (kh + 8)), kw, kh)
-        by = int(b.bottom() - 20 - 54)
-        self.clear_btn.setGeometry(int(b.x() + 24), by, 116, 54)
-        self.cancel_btn.setGeometry(int(b.x() + 150), by, 116, 54)
-        self.confirm_btn.setGeometry(int(kx), by, 3 * kw + 2 * g, 54)
+            self.keys[k].setGeometry(int(kx + (i % 3) * (kw + g)), int(ky + (i // 3) * (kh + sy(8))), kw, kh)
+        by = int(b.bottom() - sy(20) - sy(54))
+        self.clear_btn.setGeometry(int(b.x() + sx(24)), by, sx(116), sy(54))
+        self.cancel_btn.setGeometry(int(b.x() + sx(150)), by, sx(116), sy(54))
+        self.confirm_btn.setGeometry(int(kx), by, 3 * kw + 2 * g, sy(54))
 
     def press(self, key):
         t = self._text
@@ -191,31 +192,31 @@ class TemperatureKeypad(Overlay):
         fmt = (lambda v: "--" if v is None else f"{v:.{sp['decimals']}f}{(' ' + sp['unit']) if sp['unit'] else ''}")
         p.setFont(theme.font(theme.BUTTON, QFont.Weight.Medium))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(x, b.y() + 62, 100, 26), Qt.AlignmentFlag.AlignVCenter, "Current")
-        p.setFont(theme.font(20, QFont.Weight.Bold))
+        p.drawText(QRectF(x, b.y() + sy(62), sx(100), sy(26)), Qt.AlignmentFlag.AlignVCenter, "Current")
+        p.setFont(theme.font(smin(20), QFont.Weight.Bold))
         p.setPen(theme.FG)
-        p.drawText(QRectF(x + 100, b.y() + 62, 140, 26), Qt.AlignmentFlag.AlignVCenter, fmt(self._current))
-        e = QRectF(x, b.y() + 132, 242, 76)
+        p.drawText(QRectF(x + sx(100), b.y() + sy(62), sx(140), sy(26)), Qt.AlignmentFlag.AlignVCenter, fmt(self._current))
+        e = QRectF(x, b.y() + sy(132), sx(242), sy(76))
         paint_panel(p, e, 6, top=QColor(8, 9, 11), bottom=QColor(14, 16, 19),
                     border=QColor(255, 42, 32) if self._text else QColor(48, 52, 59))
-        p.setFont(theme.font(46, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(46), QFont.Weight.Bold))
         p.setPen(theme.FG if self._text else theme.MUTED)
         shown = self._text or ("0" if self._current is None else f"{self._current:.{sp['decimals']}f}")
         unit_w = 52 if sp["unit"] else 10
         p.drawText(e.adjusted(10, 0, -unit_w, 0), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight, shown)
         if sp["unit"]:
-            p.setFont(theme.font(20, QFont.Weight.DemiBold))
+            p.setFont(theme.font(smin(20), QFont.Weight.DemiBold))
             p.setPen(theme.DIM)
             p.drawText(e.adjusted(0, 0, -12, 0), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight, sp["unit"])
         p.setFont(theme.font(theme.BODY, QFont.Weight.Medium))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(x, b.y() + 214, 242, 20), Qt.AlignmentFlag.AlignVCenter,
+        p.drawText(QRectF(x, b.y() + sy(214), sx(242), sy(20)), Qt.AlignmentFlag.AlignVCenter,
                    f"Allowed: {sp['lo']:g}–{sp['hi']:g}{(' ' + sp['unit']) if sp['unit'] else ''}")
         note = self._error or ("" if self._allowed else "Printer commands are disabled")
         if note:
             p.setFont(theme.font(theme.LABEL, QFont.Weight.DemiBold))
             p.setPen(theme.RED if self._error else theme.AMBER)
-            p.drawText(QRectF(x, b.y() + 236, 242, 20), Qt.AlignmentFlag.AlignVCenter, note)
+            p.drawText(QRectF(x, b.y() + sy(236), sx(242), sy(20)), Qt.AlignmentFlag.AlignVCenter, note)
 
     def paintEvent(self, _):
         p = QPainter(self)
@@ -228,35 +229,35 @@ class TemperatureKeypad(Overlay):
         x = b.x() + 24
         p.setFont(theme.font(theme.BUTTON, QFont.Weight.Medium))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(x, b.y() + 62, 100, 26), Qt.AlignmentFlag.AlignVCenter, "Current")
-        p.drawText(QRectF(x, b.y() + 92, 100, 26), Qt.AlignmentFlag.AlignVCenter, "Target")
-        p.setFont(theme.font(20, QFont.Weight.Bold))
+        p.drawText(QRectF(x, b.y() + sy(62), sx(100), sy(26)), Qt.AlignmentFlag.AlignVCenter, "Current")
+        p.drawText(QRectF(x, b.y() + sy(92), sx(100), sy(26)), Qt.AlignmentFlag.AlignVCenter, "Target")
+        p.setFont(theme.font(smin(20), QFont.Weight.Bold))
         p.setPen(theme.FG)
         fmt = lambda v: "--" if v is None else ("Off" if v == 0 else f"{v:.0f}°C")
-        p.drawText(QRectF(x + 100, b.y() + 62, 140, 26), Qt.AlignmentFlag.AlignVCenter, fmt(self._current))
-        p.drawText(QRectF(x + 100, b.y() + 92, 140, 26), Qt.AlignmentFlag.AlignVCenter, fmt(self._target))
+        p.drawText(QRectF(x + sx(100), b.y() + sy(62), sx(140), sy(26)), Qt.AlignmentFlag.AlignVCenter, fmt(self._current))
+        p.drawText(QRectF(x + sx(100), b.y() + sy(92), sx(140), sy(26)), Qt.AlignmentFlag.AlignVCenter, fmt(self._target))
         # entry display
-        e = QRectF(x, b.y() + 132, 242, 76)
+        e = QRectF(x, b.y() + sy(132), sx(242), sy(76))
         paint_panel(p, e, 6, top=QColor(8, 9, 11), bottom=QColor(14, 16, 19),
                     border=QColor(255, 42, 32) if self._text else QColor(48, 52, 59))
-        p.setFont(theme.font(46, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(46), QFont.Weight.Bold))
         p.setPen(theme.FG if self._text else theme.MUTED)
         shown = self._text or ("0" if self._target is None else f"{self._target:g}")
         p.drawText(e.adjusted(10, 0, -52, 0), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight, shown)
-        p.setFont(theme.font(20, QFont.Weight.DemiBold))
+        p.setFont(theme.font(smin(20), QFont.Weight.DemiBold))
         p.setPen(theme.DIM)
         p.drawText(e.adjusted(0, 0, -12, 0), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight, "°C")
         lo, hi = self._limits
         lo = max(lo, 0.0)  # e.g. chamber min_temp -273.15 is a sensor bound, not a useful target
         p.setFont(theme.font(theme.BODY, QFont.Weight.Medium))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(x, b.y() + 214, 242, 20), Qt.AlignmentFlag.AlignVCenter,
+        p.drawText(QRectF(x, b.y() + sy(214), sx(242), sy(20)), Qt.AlignmentFlag.AlignVCenter,
                    f"Allowed: 0 (off) or {lo:g}–{hi:g}°C")
         note = self._error or ("" if self._allowed else "Printer commands are disabled")
         if note:
             p.setFont(theme.font(theme.LABEL, QFont.Weight.DemiBold))
             p.setPen(theme.RED if self._error else theme.AMBER)
-            p.drawText(QRectF(x, b.y() + 236, 242, 20), Qt.AlignmentFlag.AlignVCenter, note)
+            p.drawText(QRectF(x, b.y() + sy(236), sx(242), sy(20)), Qt.AlignmentFlag.AlignVCenter, note)
         p.end()
 
 
@@ -321,14 +322,14 @@ class ChoiceOverlay(Overlay):
         n = len(self.tiles)
         cols = self._columns
         rows = (n + cols - 1) // cols
-        top, bottom = b.y() + 54, b.bottom() - 20 - 54 - 10
-        tw = (b.width() - 40) / cols
+        top = b.y() + sy(54); bottom = b.bottom() - sy(20) - sy(54) - sy(10)
+        tw = (b.width() - sx(40)) / cols
         th = (bottom - top) / rows
         for i, t in enumerate(self.tiles.values()):
-            t.setGeometry(int(b.x() + 20 + (i % cols) * tw), int(top + (i // cols) * th), int(tw), int(th))
-        by = int(b.bottom() - 20 - 54)
-        self.cancel_btn.setGeometry(int(b.x() + 24), by, int(b.width() / 2 - 34), 54)
-        self.apply_btn.setGeometry(int(b.center().x() + 10), by, int(b.width() / 2 - 34), 54)
+            t.setGeometry(int(b.x() + sx(20) + (i % cols) * tw), int(top + (i // cols) * th), int(tw), int(th))
+        by = int(b.bottom() - sy(20) - sy(54))
+        self.cancel_btn.setGeometry(int(b.x() + sx(24)), by, int(b.width() / 2 - sx(34)), sy(54))
+        self.apply_btn.setGeometry(int(b.center().x() + sx(10)), by, int(b.width() / 2 - sx(34)), sy(54))
 
     def _apply(self):
         chosen = next((v for v, t in self.tiles.items() if t.isChecked()), None)
@@ -348,14 +349,14 @@ class ChoiceOverlay(Overlay):
 
 
 class HeaterPicker(ChoiceOverlay):
-    BOX = (460, 250)
+    BOX = (sx(460), sy(250))
 
     def __init__(self, parent):
         super().__init__("Run PID Tune", [("extruder", "Nozzle", None), ("heater_bed", "Bed", None)], 2, parent)
 
 
 class ProfilePicker(ChoiceOverlay):
-    BOX = (520, 340)
+    BOX = (sx(520), sy(340))
 
     def __init__(self, parent):
         super().__init__("Material", [], 3, parent)
@@ -366,14 +367,14 @@ class ProfilePicker(ChoiceOverlay):
 
 
 class ColourPicker(ChoiceOverlay):
-    BOX = (600, 404)
+    BOX = (sx(600), sy(404))
 
     def __init__(self, parent):
         super().__init__("Filament Colour", [(hx, name, hx) for name, hx in COLOURS], 4, parent)
 
 
 class MaterialPicker(ChoiceOverlay):
-    BOX = (520, 340)
+    BOX = (sx(520), sy(340))
 
     def __init__(self, parent):
         super().__init__("Material", [(m, m, None) for m in MATERIALS], 3, parent)
@@ -385,7 +386,7 @@ MONO = "DejaVu Sans Mono"
 class Keyboard(Overlay):
     """On-screen keyboard (PROVISIONAL): G-code friendly — digits, letters, = - _ . / and space.
     Emits nothing itself; open_for(title, text, callback) calls back with the text on Done."""
-    BOX = (780, 432)
+    BOX = (sx(780), sy(432))
     ROWS = ["1234567890", "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM-_.", ["shift", "=", "/", "space", "back"]]
 
     def __init__(self, parent):
@@ -410,7 +411,7 @@ class Keyboard(Overlay):
         self.present()
 
     def layout_children(self, b):
-        kw, kh, g, top = 70, 44, 5, b.y() + 108  # 5 rows end above the Cancel / Done row
+        kw = sx(70); kh = sy(44); g = smin(5); top = b.y() + sy(108)
         i = 0
         for r, row in enumerate(self.ROWS):
             widths = [kw * (3.6 if k == "space" else 1.5 if k in ("shift", "back") else 1) for k in row]
@@ -420,9 +421,9 @@ class Keyboard(Overlay):
                 self.keys[i].setGeometry(int(x), int(top + r * (kh + g)), int(wdt), kh)
                 x += wdt + g
                 i += 1
-        by = int(b.bottom() - 16 - 50)
-        self.cancel_btn.setGeometry(int(b.x() + 20), by, 200, 50)
-        self.done_btn.setGeometry(int(b.right() - 220), by, 200, 50)
+        by = int(b.bottom() - sy(16) - sy(50))
+        self.cancel_btn.setGeometry(int(b.x() + sx(20)), by, sx(200), sy(50))
+        self.done_btn.setGeometry(int(b.right() - sx(220)), by, sx(200), sy(50))
 
     def press(self, key):
         if key == "back":
@@ -448,10 +449,10 @@ class Keyboard(Overlay):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         b = self.paint_box(p, self._title)
-        e = QRectF(b.x() + 20, b.y() + 54, b.width() - 40, 48)
+        e = QRectF(b.x() + sx(20), b.y() + sy(54), b.width() - sx(40), sy(48))
         paint_panel(p, e, 6, top=QColor(8, 9, 11), bottom=QColor(14, 16, 19), border=QColor(255, 42, 32))
         f = QFont(MONO)
-        f.setPixelSize(20)
+        f.setPixelSize(smin(20))
         p.setFont(f)
         p.setPen(theme.FG)
         p.drawText(e.adjusted(12, 0, -12, 0), Qt.AlignmentFlag.AlignVCenter, self._text + "▏")
@@ -460,7 +461,7 @@ class Keyboard(Overlay):
 
 class ErrorDialog(Overlay):
     """'Error Detected' (reference): Klipper's message, Restart Klipper / View Logs / Close."""
-    BOX = (560, 330)
+    BOX = (sx(560), sy(330))
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -475,27 +476,27 @@ class ErrorDialog(Overlay):
         self.present()
 
     def layout_children(self, b):
-        bw = (b.width() - 48 - 16) / 3
-        by = int(b.bottom() - 18 - 52)
+        bw = (b.width() - sx(48) - sx(16)) / 3
+        by = int(b.bottom() - sy(18) - sy(52))
         for i, btn in enumerate((self.restart_btn, self.logs_btn, self.close_btn)):
-            btn.setGeometry(int(b.x() + 24 + i * (bw + 8)), by, int(bw), 52)
+            btn.setGeometry(int(b.x() + sx(24) + i * (bw + sx(8))), by, int(bw), sy(52))
 
     def paintEvent(self, _):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         b = self.paint_box(p, "")
-        icons.warning(p, QRectF(b.x() + 26, b.y() + 20, 50, 44), QColor(theme.RED))
-        p.setFont(theme.font(28, QFont.Weight.Bold))
+        icons.warning(p, QRectF(b.x() + sx(26), b.y() + sy(20), smin(50), smin(44)), QColor(theme.RED))
+        p.setFont(theme.font(smin(28), QFont.Weight.Bold))
         p.setPen(theme.RED)
-        p.drawText(QRectF(b.x() + 92, b.y() + 14, 400, 34), Qt.AlignmentFlag.AlignVCenter, "Error Detected")
+        p.drawText(QRectF(b.x() + sx(92), b.y() + sy(14), sx(400), sy(34)), Qt.AlignmentFlag.AlignVCenter, "Error Detected")
         p.setFont(theme.font(theme.BUTTON, QFont.Weight.Medium))
         p.setPen(theme.FG_SOFT)
-        p.drawText(QRectF(b.x() + 92, b.y() + 46, 440, 20), Qt.AlignmentFlag.AlignVCenter,
+        p.drawText(QRectF(b.x() + sx(92), b.y() + sy(46), sx(440), sy(20)), Qt.AlignmentFlag.AlignVCenter,
                    "Klipper reported an error")
-        box = QRectF(b.x() + 20, b.y() + 80, b.width() - 40, b.height() - 80 - 88)
+        box = QRectF(b.x() + sx(20), b.y() + sy(80), b.width() - sx(40), b.height() - sy(80) - sy(88))
         paint_panel(p, box, 6, top=QColor(6, 7, 9), bottom=QColor(12, 13, 15), border=QColor(52, 56, 62))
         f = QFont(MONO)
-        f.setPixelSize(12)
+        f.setPixelSize(smin(12))
         p.setFont(f)
         p.setPen(theme.FG_SOFT)
         text = "\n".join("!! " + l for l in self.message.splitlines() if l.strip())

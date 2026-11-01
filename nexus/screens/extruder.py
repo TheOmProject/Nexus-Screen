@@ -4,6 +4,7 @@ from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QColor, QFont
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.screens.addon_common import place_buttons
 from nexus.screens.extrusion import ExtruderStatus, NozzlePanel
 from nexus.widgets import icons
@@ -37,11 +38,11 @@ class MoveColumn:
         for b in (self.speed_val, self.speed_plus):
             b.clicked.connect(lambda: self._cycle("speed"))
         self.go.clicked.connect(lambda: on_go(self.distance, self.speed))
-        self.dist_val.setGeometry(x + 70, 52, 82, 36)
-        self.dist_plus.setGeometry(x + 156, 52, 36, 36)
-        self.speed_val.setGeometry(x + 70, 94, 82, 36)
-        self.speed_plus.setGeometry(x + 156, 94, 36, 36)
-        self.go.setGeometry(x, 140, 196, 66)
+        self.dist_val.setGeometry(sx(x + 70), sy(52), sx(82), sy(36))
+        self.dist_plus.setGeometry(sx(x + 156), sy(52), sx(36), sy(36))
+        self.speed_val.setGeometry(sx(x + 70), sy(94), sx(82), sy(36))
+        self.speed_plus.setGeometry(sx(x + 156), sy(94), sx(36), sy(36))
+        self.go.setGeometry(sx(x), sy(140), sx(196), sy(66))
         self.cap = None
         self.refresh = lambda: None
 
@@ -66,11 +67,11 @@ class MoveColumn:
     def paint(self, p):
         p.setFont(theme.font(theme.LABEL, QFont.Weight.DemiBold))
         p.setPen(theme.FG_SOFT)
-        p.drawText(QRectF(self.x, 28, 196, 20), Qt.AlignmentFlag.AlignCenter, self.title)
+        p.drawText(QRectF(sx(self.x), sy(28), sx(196), sy(20)), Qt.AlignmentFlag.AlignCenter, self.title)
         p.setFont(theme.font(theme.BODY, QFont.Weight.Medium))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(self.x, 52, 66, 36), Qt.AlignmentFlag.AlignVCenter, "Distance")
-        p.drawText(QRectF(self.x, 94, 66, 36), Qt.AlignmentFlag.AlignVCenter, "Speed")
+        p.drawText(QRectF(sx(self.x), sy(52), sx(66), sy(36)), Qt.AlignmentFlag.AlignVCenter, "Distance")
+        p.drawText(QRectF(sx(self.x), sy(94), sx(66), sy(36)), Qt.AlignmentFlag.AlignVCenter, "Speed")
 
 
 class ExtrudePanel(Panel):
@@ -86,7 +87,7 @@ class ExtrudePanel(Panel):
         self.extrude.paint(p)
         self.retract.paint(p)
         p.setPen(QColor(theme.DIVIDER))
-        p.drawLine(205, 32, 205, self.height() - 12)
+        p.drawLine(sx(205), sy(32), sx(205), self.height() - sy(12))
 
 
 class ExtruderScreen(SubScreen):
@@ -97,19 +98,19 @@ class ExtruderScreen(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.temp = NozzlePanel(ctl, self)
-        self.temp.setGeometry(8, 58, 190, 240)
+        self.temp.setGeometry(sx(8), sy(58), sx(190), sy(240))
         self.moves = ExtrudePanel(ctl, self)
-        self.moves.setGeometry(206, 58, 414, 240)
+        self.moves.setGeometry(sx(206), sy(58), sx(414), sy(240))
         for col in (self.moves.extrude, self.moves.retract):
             col.refresh = lambda: self.set_data(self._data)
         self.status = ExtruderStatus(self)
-        self.status.setGeometry(628, 58, 164, 240)
+        self.status.setGeometry(sx(628), sy(58), sx(164), sy(240))
         self.extra = Panel("Additional Controls", self)
-        self.extra.setGeometry(8, 306, 784, 130)
+        self.extra.setGeometry(sx(8), sy(306), sx(784), sy(130))
         self.extra.paint_body = self._paint_fan
         self.flow = ActionTile(icons.gear, "Flow Rate", "--", parent=self.extra)
         self.pa = ActionTile(icons.mesh_grid, "Pressure Advance", "--", parent=self.extra)
-        place_buttons([self.flow, self.pa], QRectF(4, 28, 520, 96), 2, 0)
+        place_buttons([self.flow, self.pa], QRectF(sx(4), sy(28), sx(520), sy(96)), 2, 0)
         self.flow.clicked.connect(self._edit_flow)
         self.pa.clicked.connect(self._edit_pa)
         ctl.filament_job.changed.connect(lambda: self.set_data(self.ctl._data))
@@ -129,17 +130,17 @@ class ExtruderScreen(SubScreen):
         return next((f for f in self._data.get("fans") or [] if f["id"].startswith("heater_fan ")), None)
 
     def _paint_fan(self, p):
-        r = QRectF(536, 32, 240, 88)
-        icons.fan(p, QRectF(r.x() + 8, r.center().y() - 16, 32, 32), QColor(theme.FG_SOFT))
+        r = QRectF(sx(536), sy(32), sx(240), sy(88))
+        icons.fan(p, QRectF(r.x() + sx(8), r.center().y() - sy(16), smin(32), smin(32)), QColor(theme.FG_SOFT))
         fan = self._hotend_fan()
         p.setFont(theme.font(theme.BUTTON, QFont.Weight.DemiBold))
         p.setPen(theme.FG)
-        p.drawText(QRectF(r.x() + 52, r.y() + 16, 180, 22), Qt.AlignmentFlag.AlignVCenter, "Extruder Fan")
+        p.drawText(QRectF(r.x() + sx(52), r.y() + sy(16), sx(180), sy(22)), Qt.AlignmentFlag.AlignVCenter, "Extruder Fan")
         p.setFont(theme.font(theme.CAPTION, QFont.Weight.Medium))
         p.setPen(theme.DIM)
         text = "Not detected" if fan is None else (
             f"Automatic · {round(fan['speed'] * 100)}%" if fan["speed"] > 0 else "Automatic · OFF")
-        p.drawText(QRectF(r.x() + 52, r.y() + 40, 180, 18), Qt.AlignmentFlag.AlignVCenter, text)
+        p.drawText(QRectF(r.x() + sx(52), r.y() + sy(40), sx(180), sy(18)), Qt.AlignmentFlag.AlignVCenter, text)
 
     def set_data(self, data):
         self._data = data

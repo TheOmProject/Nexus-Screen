@@ -3,6 +3,7 @@ from PyQt6.QtCore import QRectF, Qt, QTimer
 from PyQt6.QtGui import QColor, QFont
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.widgets import icons
 from nexus.widgets.buttons import SmallButton
 from nexus.widgets.overlays import COLOURS, MATERIAL_TEMPS
@@ -38,7 +39,7 @@ def place_buttons(buttons, rect, cols, gap=6, pad=0):
 
 
 def paint_number_band(p, r, text, active):
-    band = QRectF(r.x() + 8, r.y() + 6, r.width() - 16, 18)
+    band = QRectF(r.x() + sx(8), r.y() + sy(6), r.width() - sx(16), sy(18))
     p.setPen(Qt.PenStyle.NoPen)
     p.setBrush(QColor(210, 24, 18) if active else QColor(255, 255, 255, 14))
     p.drawRoundedRect(band, 3, 3)
@@ -50,16 +51,16 @@ def paint_number_band(p, r, text, active):
 def paint_status_dot(p, r, ok):
     p.setPen(Qt.PenStyle.NoPen)
     p.setBrush(theme.GREEN if ok else theme.MUTED)
-    p.drawEllipse(QRectF(r.x() + 9, r.bottom() - 17, 9, 9))
+    p.drawEllipse(QRectF(r.x() + sx(9), r.bottom() - sy(17), smin(9), smin(9)))
 
 
 def paint_caption(p, r, line1, line2, y):
     p.setFont(theme.font(theme.BODY, QFont.Weight.DemiBold))
     p.setPen(theme.FG)
-    p.drawText(QRectF(r.x(), y, r.width(), 15), Qt.AlignmentFlag.AlignCenter, line1)
+    p.drawText(QRectF(r.x(), y, r.width(), sy(15)), Qt.AlignmentFlag.AlignCenter, line1)
     p.setFont(theme.font(theme.CAPTION, QFont.Weight.Medium))
     p.setPen(theme.FG_SOFT)
-    p.drawText(QRectF(r.x(), y + 14, r.width(), 14), Qt.AlignmentFlag.AlignCenter, line2)
+    p.drawText(QRectF(r.x(), y + sy(14), r.width(), sy(14)), Qt.AlignmentFlag.AlignCenter, line2)
 
 
 def enable(ctl, data, pairs):
@@ -77,8 +78,8 @@ class HeatPanel(Panel):
         self.heater = "extruder"
         self.current = None
         self.target = 0
-        self.minus = SmallButton("-", parent=self, font_px=24, checkable=False)
-        self.plus = SmallButton("+", parent=self, font_px=24, checkable=False)
+        self.minus = SmallButton("-", parent=self, font_px=smin(24), checkable=False)
+        self.plus = SmallButton("+", parent=self, font_px=smin(24), checkable=False)
         self.heat = ActionTile(icons.thermometer, "Set & Heat", primary=True, parent=self)
         self.minus.clicked.connect(lambda: self._step(-TEMP_STEP))
         self.plus.clicked.connect(lambda: self._step(TEMP_STEP))
@@ -86,9 +87,9 @@ class HeatPanel(Panel):
 
     def resizeEvent(self, e):
         w, h = self.width(), self.height()
-        self.minus.setGeometry(w - 92, 64, 40, 34)
-        self.plus.setGeometry(w - 48, 64, 40, 34)
-        self.heat.setGeometry(4, h - 68, w - 8, 62)
+        self.minus.setGeometry(w - sx(92), sy(64), sx(40), sy(34))
+        self.plus.setGeometry(w - sx(48), sy(64), sx(40), sy(34))
+        self.heat.setGeometry(sx(4), h - sy(68), w - sx(8), sy(62))
         super().resizeEvent(e)
 
     def set_heater(self, heater, target):
@@ -109,7 +110,7 @@ class HeatPanel(Panel):
         self.ctl.refresh_controls()
 
     def paint_body(self, p):
-        r = QRectF(8, 28, self.width() - 16, 70)
+        r = QRectF(sx(8), sy(28), self.width() - sx(16), sy(70))
         paint_rows(p, r, [("Current", fmt_temp(self.current), None),
                           ("Target", fmt_temp(self.target) if self.target else "Off", None)], label_w=64)
 
@@ -142,9 +143,9 @@ class Stepper:
     """− [value] + row. The centre key shows the value and may open the keypad."""
 
     def __init__(self, parent, on_step, on_value=None, font_px=theme.FIELD):
-        self.minus = SmallButton("-", parent=parent, font_px=24, checkable=False)
+        self.minus = SmallButton("-", parent=parent, font_px=smin(24), checkable=False)
         self.value = SmallButton("", parent=parent, font_px=font_px, checkable=False)
-        self.plus = SmallButton("+", parent=parent, font_px=24, checkable=False)
+        self.plus = SmallButton("+", parent=parent, font_px=smin(24), checkable=False)
         self.minus.clicked.connect(lambda: on_step(-1))
         self.plus.clicked.connect(lambda: on_step(1))
         if on_value:

@@ -5,6 +5,7 @@ from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPen
 from PyQt6.QtWidgets import QAbstractButton
 
 from nexus import theme
+from nexus.config import SCREEN_W, sx, sy, smin
 from nexus.screens.addon_common import Debounce, Stepper, grid, place_buttons
 from nexus.widgets import icons
 from nexus.widgets.buttons import SmallButton, ToggleSwitch
@@ -14,7 +15,7 @@ from nexus.widgets.panels import ActionTile, Panel, SubScreen
 
 STEP = 0.10
 PER_PAGE = 4
-CARD_W = 190
+CARD_W = sx(190)
 DOTS = ["#FFFFFF", "#FF2A22", "#FF7A1A", "#FFD21A", "#33D14F", "#14C8B4", "#2F9BFF", "#A04BFF"]
 PRESETS = [("Off", "", 0.0), ("Low", "25%", 0.25), ("Medium", "50%", 0.50), ("High", "100%", 1.0)]
 
@@ -81,12 +82,12 @@ class LightCard(Panel):
 
     def resizeEvent(self, e):
         w = self.width()
-        self.toggle.setGeometry(w - 54, 12, 44, 22)
-        self.gauge.setGeometry(int(w / 2 - 56), 46, 112, 112)
-        self.stepper.place(10, 190, w - 20, 32, key_w=40)
+        self.toggle.setGeometry(w - sx(54), sy(12), sx(44), sy(22))
+        self.gauge.setGeometry(int(w / 2 - smin(56)), sy(46), smin(112), smin(112))
+        self.stepper.place(sx(10), sy(190), w - sx(20), sy(32), key_w=sx(40))
         for i, d in enumerate(self.dots):
-            d.setGeometry(int(10 + i * (w - 20) / len(self.dots)), 226, int((w - 20) / len(self.dots)), 24)
-        self.custom.setGeometry(10, 254, w - 20, 28)
+            d.setGeometry(int(sx(10) + i * (w - sx(20)) / len(self.dots)), sy(226), int((w - sx(20)) / len(self.dots)), sy(24))
+        self.custom.setGeometry(sx(10), sy(254), w - sx(20), sy(28))
         super().resizeEvent(e)
 
     def set_light(self, light, data):
@@ -149,7 +150,7 @@ class LightCard(Panel):
             p.setPen(theme.DIM)
             p.drawText(QRectF(34, 26, w - 94, 14), Qt.AlignmentFlag.AlignVCenter,
                        QFontMetricsF(f).elidedText(self.light["id"], Qt.TextElideMode.ElideRight, w - 94))
-            p.setFont(theme.font(24, QFont.Weight.Bold))
+            p.setFont(theme.font(smin(24), QFont.Weight.Bold))
             p.setPen(theme.FG)
             p.drawText(QRectF(0, 158, w, 30), Qt.AlignmentFlag.AlignCenter, f"{round(self.level * 100)}%")
         p.end()
@@ -165,19 +166,19 @@ class LightingScreen(SubScreen):
         self.cards = [LightCard(ctl, self) for _ in range(PER_PAGE)]
         self.prev = SmallButton(icon=icons.back_arrow, parent=self, checkable=False)
         self.next = SmallButton(icon=icons.chevron, parent=self, checkable=False)
-        self.prev.setGeometry(700, 14, 40, 30)
-        self.next.setGeometry(748, 14, 40, 30)
+        self.prev.setGeometry(sx(700), sy(14), sx(40), sy(30))
+        self.next.setGeometry(sx(748), sy(14), sx(40), sy(30))
         self.prev.clicked.connect(lambda: self._page(-1))
         self.next.clicked.connect(lambda: self._page(1))
         self.page = 0
         self.presets = Panel("Presets", self)
-        self.presets.setGeometry(8, 354, 784, 82)
+        self.presets.setGeometry(sx(8), sy(354), sx(784), sy(82))
         self.preset_btns = []
         for name, sub, level in PRESETS:
             b = ActionTile(icons.bulb, name, sub or "All lights off", parent=self.presets)
             b.clicked.connect(lambda _=False, lv=level: self._preset(lv))
             self.preset_btns.append(b)
-        place_buttons(self.preset_btns, QRectF(4, 22, 776, 56), 4, 0)
+        place_buttons(self.preset_btns, QRectF(sx(4), sy(22), sx(776), sy(56)), 4, 0)
         self._data = {}
 
     def _page(self, d):
@@ -202,11 +203,11 @@ class LightingScreen(SubScreen):
         self.next.setEnabled(self.page < pages - 1)
         n = len(shown)
         total = n * CARD_W + (n - 1) * 8 if n else 0
-        x0 = 8 if n == PER_PAGE else (800 - total) / 2  # fewer lights: centred row
-        cells = grid(QRectF(8, 58, 784, 288), PER_PAGE, PER_PAGE, 8)
+        x0 = sx(8) if n == PER_PAGE else (SCREEN_W - total) / 2  # fewer lights: centred row
+        cells = grid(QRectF(sx(8), sy(58), sx(784), sy(288)), PER_PAGE, PER_PAGE, sx(8))
         for i, card in enumerate(self.cards):
             if i < n:
-                r = cells[i] if n == PER_PAGE else QRectF(x0 + i * (CARD_W + 8), 58, CARD_W, 288)
+                r = cells[i] if n == PER_PAGE else QRectF(x0 + i * (CARD_W + sx(8)), sy(58), CARD_W, sy(288))
                 card.setGeometry(r.toRect())
                 card.set_light(shown[i], data)
                 card.show()

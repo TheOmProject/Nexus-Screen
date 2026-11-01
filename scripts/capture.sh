@@ -1,25 +1,44 @@
 #!/usr/bin/env bash
-# Capture genuine 800x480 screenshots of the running PyQt6 app on a private,
-# user-local Xvfb display. Touches no real display, service or printer state.
+# Capture screenshots of the running PyQt6 app on a private Xvfb display.
+# Resolution is controlled by NEXUS_SCREEN_W / NEXUS_SCREEN_H (default 800×480).
+# Touches no real display, service or printer state.
 #   scripts/capture.sh OUT_DIR
+#   NEXUS_SCREEN_W=480 NEXUS_SCREEN_H=320 scripts/capture.sh OUT_DIR
+#   scripts/capture-multi.sh OUT_DIR   # run all four reference resolutions
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="${1:?usage: capture.sh OUT_DIR}"
-XVFB="${NEXUS_XVFB:-$(command -v Xvfb 2>/dev/null || echo Xvfb)}"
 PY="${NEXUS_PY:-$HOME/nexus-screen-env/bin/python}"
-DISP="${NEXUS_DISPLAY:-93}"
+W="${NEXUS_SCREEN_W:-800}"
+H="${NEXUS_SCREEN_H:-480}"
 mkdir -p "$OUT"
 
-"$XVFB" ":$DISP" -screen 0 800x480x24 -nolisten tcp -noreset >"$OUT/xvfb.log" 2>&1 &
-XPID=$!
-trap 'kill $XPID 2>/dev/null || true' EXIT
-for _ in $(seq 1 50); do [ -e "/tmp/.X11-unix/X$DISP" ] && break; sleep 0.1; done
-
-run() {  # name, app args...
-    local name="$1"; shift
-    DISPLAY=":$DISP" QT_QPA_PLATFORM=xcb "$PY" "$HERE/main.py" --capture "$OUT/$name.png" "$@" \
-        2>>"$OUT/app-stderr.log"
-}
+# Use Xvfb (xcb) when available, fall back to Qt offscreen platform.
+XVFB_BIN="${NEXUS_XVFB:-$(command -v Xvfb 2>/dev/null || echo "")}"
+if [ -n "$XVFB_BIN" ] && [ -x "$XVFB_BIN" ]; then
+    DISP="${NEXUS_DISPLAY:-93}"
+    "$XVFB_BIN" ":$DISP" -screen 0 "${W}x${H}x24" -nolisten tcp -noreset >"$OUT/xvfb.log" 2>&1 &
+    XPID=$!
+    trap 'kill $XPID 2>/dev/null || true' EXIT
+    for _ in $(seq 1 50); do [ -e "/tmp/.X11-unix/X$DISP" ] && break; sleep 0.1; done
+    QT_BACKEND="DISPLAY=:$DISP QT_QPA_PLATFORM=xcb"
+    run() {
+        local name="$1"; shift
+        DISPLAY=":$DISP" QT_QPA_PLATFORM=xcb \
+            NEXUS_SCREEN_W="$W" NEXUS_SCREEN_H="$H" \
+            "$PY" "$HERE/main.py" --capture "$OUT/$name.png" "$@" \
+            2>>"$OUT/app-stderr.log"
+    }
+else
+    echo "Xvfb not found — using Qt offscreen platform" >&2
+    run() {
+        local name="$1"; shift
+        QT_QPA_PLATFORM=offscreen \
+            NEXUS_SCREEN_W="$W" NEXUS_SCREEN_H="$H" \
+            "$PY" "$HERE/main.py" --capture "$OUT/$name.png" "$@" \
+            2>>"$OUT/app-stderr.log"
+    }
+fi
 run 01-home-standby          --state standby  --addons both
 run 02-print-printing       --state printing --addons both
 run 02b-print-stop-confirm  --state printing --addons both --review stop-dialog

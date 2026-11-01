@@ -13,19 +13,20 @@ from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QLinearGradient, QPainter,
 from PyQt6.QtWidgets import QWidget
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.screens.home import HEADER_H, AddonsCard, TemperaturesCard, _header
 from nexus.widgets import icons
 from nexus.widgets.buttons import ActionButton
 from nexus.widgets.glow_widget import paint_panel
 
 # geometry measured from the approved Printing reference (screen y = 36 + local y)
-HERO = (7, 4, 404, 343)
-CARD_X, CARD_W = 420, 373
-BAR = (5, 354, 788, 77)
-PAUSE = (15, 363, 153, 58)
-STOP = (177, 363, 141, 58)
-BABY = (327, 363, 296, 58)  # the slot of the former inline baby-step controls
-HOME = (632, 363, 153, 58)
+HERO = (sx(7), sy(4), sx(404), sy(343))
+CARD_X, CARD_W = sx(420), sx(373)
+BAR = (sx(5), sy(354), sx(788), sy(77))
+PAUSE = (sx(15), sy(363), sx(153), sy(58))
+STOP = (sx(177), sy(363), sx(141), sy(58))
+BABY = (sx(327), sy(363), sx(296), sy(58))  # the slot of the former inline baby-step controls
+HOME = (sx(632), sy(363), sx(153), sy(58))
 
 
 class ThumbnailView(QWidget):
@@ -72,7 +73,7 @@ class ThumbnailView(QWidget):
             p.drawPixmap(int((r.width() - img.width()) / 2), int((r.height() - img.height()) / 2), img)
         elif self.state == "none":
             icons.chamber(p, QRectF(r.center().x() - 26, r.center().y() - 46, 52, 56), QColor(theme.MUTED))
-            p.setFont(theme.font(18, QFont.Weight.DemiBold))
+            p.setFont(theme.font(smin(18), QFont.Weight.DemiBold))
             p.setPen(theme.DIM)
             p.drawText(QRectF(r.x(), r.center().y() + 20, r.width(), 26), Qt.AlignmentFlag.AlignCenter,
                        "No Preview Available")
@@ -115,7 +116,7 @@ class PrintProgressCard(QWidget):
         p.drawText(QRectF(x, top, right - x, 24), Qt.AlignmentFlag.AlignVCenter,
                    QFontMetricsF(f).elidedText(name, Qt.TextElideMode.ElideMiddle, right - x))
         # percentage + bar
-        pf = theme.font(28, QFont.Weight.Bold)
+        pf = theme.font(smin(28), QFont.Weight.Bold)
         p.setFont(pf)
         pct_text = f"{pct}%"
         pw = QFontMetricsF(pf).horizontalAdvance(pct_text)
@@ -212,13 +213,13 @@ class PrintStatusScreen(QWidget):
     def _apply_layout(self, has_addons):
         x, y, _, h = HERO
         if has_addons:
-            self.temps.setGeometry(CARD_X, y, CARD_W, 112)
-            self.progress.setGeometry(CARD_X, y + 119, CARD_W, 105)
-            self.addons.setGeometry(CARD_X, y + 231, CARD_W, 112)
+            self.temps.setGeometry(CARD_X, y, CARD_W, sy(112))
+            self.progress.setGeometry(CARD_X, y + sy(119), CARD_W, sy(105))
+            self.addons.setGeometry(CARD_X, y + sy(231), CARD_W, sy(112))
         else:
-            half = (h - 7) // 2
+            half = (h - sy(7)) // 2
             self.temps.setGeometry(CARD_X, y, CARD_W, half)
-            self.progress.setGeometry(CARD_X, y + half + 7, CARD_W, h - half - 7)
+            self.progress.setGeometry(CARD_X, y + half + sy(7), CARD_W, h - half - sy(7))
         self.addons.setVisible(has_addons)
 
     def paintEvent(self, _):

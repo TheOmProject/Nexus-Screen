@@ -5,6 +5,7 @@ from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import QButtonGroup
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.screens.addon_common import (HeatPanel, colour_name, default_temp, enable, fmt_temp, grid, paint_caption,
                                         paint_number_band, paint_status_dot, place_buttons)
 from nexus.widgets import icons
@@ -51,22 +52,22 @@ class StealthChangerDashboard(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.status = RowsPanel("System Status", self, label_w=96)
-        self.status.setGeometry(8, 58, 196, 250)
+        self.status.setGeometry(sx(8), sy(58), sx(196), sy(250))
         self.heads = Panel("Toolheads", self)
-        self.heads.setGeometry(212, 58, 580, 250)
+        self.heads.setGeometry(sx(212), sy(58), sx(580), sy(250))
         self.group = QButtonGroup(self)
         self.group.setExclusive(True)
         self.tiles = []
         self.active = Panel("Active Tool", self)
-        self.active.setGeometry(8, 316, 250, 120)
+        self.active.setGeometry(sx(8), sy(316), sx(250), sy(120))
         self.active.paint_body = self._paint_active
         self.temps = Panel("Temperatures", self)
-        self.temps.setGeometry(266, 316, 370, 120)
+        self.temps.setGeometry(sx(266), sy(316), sx(370), sy(120))
         self.temps.paint_body = self._paint_temps
         self.tools = Panel("Tools", self)
-        self.tools.setGeometry(644, 316, 148, 120)
+        self.tools.setGeometry(sx(644), sy(316), sx(148), sy(120))
         self.manage_btn = ActionTile(icons.gear, "Manage", "Tool controls", parent=self.tools)
-        self.manage_btn.setGeometry(4, 26, 140, 88)
+        self.manage_btn.setGeometry(sx(4), sy(26), sx(140), sy(88))
         self.manage_btn.clicked.connect(self.manage)
         self._data = {}
 
@@ -131,7 +132,7 @@ class StealthChangerDashboard(SubScreen):
             p.drawText(b, Qt.AlignmentFlag.AlignCenter, "No tool active")
             return
         icons.toolhead(p, QRectF(b.x() + 14, b.y() + 8, 46, 62), QColor(act["color"]))
-        p.setFont(theme.font(22, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(22), QFont.Weight.Bold))
         p.setPen(theme.RED)
         p.drawText(QRectF(b.x() + 82, b.y() + 8, 140, 28), Qt.AlignmentFlag.AlignVCenter, act["name"])
         p.setFont(theme.font(theme.LABEL, QFont.Weight.Medium))
@@ -155,7 +156,7 @@ class StealthChangerDashboard(SubScreen):
             p.setFont(theme.font(theme.BODY, QFont.Weight.Medium))
             p.setPen(theme.DIM)
             p.drawText(QRectF(r.x(), r.y() + 6, r.width(), 16), Qt.AlignmentFlag.AlignCenter, label)
-            p.setFont(theme.font(22, QFont.Weight.Bold))
+            p.setFont(theme.font(smin(22), QFont.Weight.Bold))
             p.setPen(theme.FG)
             p.drawText(QRectF(r.x(), r.y() + 24, r.width(), 28), Qt.AlignmentFlag.AlignCenter,
                        fmt_temp(val[0] if val else None))
@@ -174,8 +175,8 @@ class ToolDetail(Panel):
         self.heater = None
         self.colour_btn = SmallButton("Colour", parent=self, font_px=theme.BUTTON, checkable=False)
         self.material_btn = SmallButton("Material", parent=self, font_px=theme.BUTTON, checkable=False)
-        self.colour_btn.setGeometry(10, 166, 96, 30)
-        self.material_btn.setGeometry(10, 202, 96, 30)
+        self.colour_btn.setGeometry(sx(10), sy(166), sx(96), sy(30))
+        self.material_btn.setGeometry(sx(10), sy(202), sx(96), sy(30))
         self.colour_btn.clicked.connect(
             lambda: self.tool and self.ctl.pick_colour(self.tool["name"], self.tool["color"],
                                                        lambda c: self.ctl.set_tool_meta(self.tool["name"], color=c)))
@@ -216,22 +217,22 @@ class StealthChangerControls(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.select = Panel("Select Tool", self)
-        self.select.setGeometry(8, 58, 150, 250)
+        self.select.setGeometry(sx(8), sy(58), sx(150), sy(250))
         self.tool_group = QButtonGroup(self)
         self.tool_group.setExclusive(True)
         self.tool_buttons = []
         self.detail = ToolDetail(ctl, self)
-        self.detail.setGeometry(166, 58, 400, 250)
+        self.detail.setGeometry(sx(166), sy(58), sx(400), sy(250))
         self.heat = HeatPanel(ctl, self)
-        self.heat.setGeometry(574, 58, 218, 250)
+        self.heat.setGeometry(sx(574), sy(58), sx(218), sy(250))
         self.actions = Panel("Tool Actions", self)
-        self.actions.setGeometry(8, 316, 784, 120)
+        self.actions.setGeometry(sx(8), sy(316), sx(784), sy(120))
         a = self.actions
         self.select_btn = ActionTile(icons.check, "Select Tool", "Activate this tool", True, a)
         self.park = ActionTile(icons.house, "Park Tool", "Return tool to dock", parent=a)
         self.init = ActionTile(icons.swap, "Initialize", "Initialize toolchanger", parent=a)
         self.refresh = ActionTile(icons.refresh, "Refresh Status", "Re-read tool state", parent=a)
-        place_buttons([self.select_btn, self.park, self.init, self.refresh], QRectF(4, 26, 776, 88), 4, 0)
+        place_buttons([self.select_btn, self.park, self.init, self.refresh], QRectF(sx(4), sy(26), sx(776), sy(88)), 4, 0)
         self.select_btn.clicked.connect(self._select_tool)
         self.park.clicked.connect(lambda: self.ctl.run("tool_park"))
         self.init.clicked.connect(lambda: self.ctl.run("tc_initialize"))
@@ -253,7 +254,7 @@ class StealthChangerControls(SubScreen):
         _, tools = _tools(data)
         sel = _selected(data)
         while len(self.tool_buttons) < len(tools):
-            b = SmallButton("", parent=self.select, font_px=17, checkable=True)
+            b = SmallButton("", parent=self.select, font_px=smin(17), checkable=True)
             self.tool_group.addButton(b)
             self.tool_buttons.append(b)
         for b, t in zip(self.tool_buttons, tools):
@@ -267,7 +268,7 @@ class StealthChangerControls(SubScreen):
             b.show()
         for b in self.tool_buttons[len(tools):]:
             b.hide()
-        place_buttons(self.tool_buttons[:len(tools)], QRectF(8, 28, 134, 214), 2, 6)
+        place_buttons(self.tool_buttons[:len(tools)], QRectF(sx(8), sy(28), sx(134), sy(214)), 2, sx(6))
         self.detail.set_tool(sel, _heater(data, sel), data)
         if sel and (sel["name"], sel["material"]) != self._heat_for:  # re-derive on tool or material change
             self._heat_for = (sel["name"], sel["material"])

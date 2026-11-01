@@ -3,6 +3,7 @@ states (Moonraker's query_endstops, refreshed on demand) and homing actions."""
 from PyQt6.QtCore import QRectF
 
 from nexus import theme
+from nexus.config import sx, sy
 from nexus.screens.addon_common import enable, place_buttons
 from nexus.widgets import icons
 from nexus.widgets.panels import ActionTile, Panel, RowsPanel, SubScreen
@@ -16,13 +17,13 @@ class LimitsScreen(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.axes = RowsPanel("Axis Limits", self, label_w=90)
-        self.axes.setGeometry(8, 58, 290, 290)
+        self.axes.setGeometry(sx(8), sy(58), sx(290), sy(290))
         self.homing = RowsPanel("Homing Position", self, label_w=110)
-        self.homing.setGeometry(306, 58, 486, 128)
+        self.homing.setGeometry(sx(306), sy(58), sx(486), sy(128))
         self.endstops = RowsPanel("Endstops", self, label_w=110)
-        self.endstops.setGeometry(306, 194, 486, 154)
+        self.endstops.setGeometry(sx(306), sy(194), sx(486), sy(154))
         self.actions = Panel("Actions", self)
-        self.actions.setGeometry(8, 356, 784, 80)
+        self.actions.setGeometry(sx(8), sy(356), sx(784), sy(80))
         self.home_btns = {}
         for label, axes in (("Home All", ""), ("Home X", " X"), ("Home Y", " Y"), ("Home Z", " Z")):
             b = ActionTile(icons.house, label, primary=(axes == ""), parent=self.actions)
@@ -30,7 +31,7 @@ class LimitsScreen(SubScreen):
             self.home_btns[label] = b
         self.check = ActionTile(icons.refresh, "Check Endstops", parent=self.actions)
         self.check.clicked.connect(self.reload)
-        place_buttons([*self.home_btns.values(), self.check], QRectF(4, 22, 776, 54), 5, 0)
+        place_buttons([*self.home_btns.values(), self.check], QRectF(sx(4), sy(22), sx(776), sy(54)), 5, 0)
         self._data = {}
 
     def showEvent(self, e):

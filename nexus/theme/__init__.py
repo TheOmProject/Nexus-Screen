@@ -3,6 +3,8 @@ import os
 
 from PyQt6.QtGui import QColor, QFont, QFontDatabase
 
+from nexus.config import smin
+
 ASSETS = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets")
 _QSS = os.path.join(os.path.dirname(__file__), "nexus.qss")
 
@@ -32,24 +34,24 @@ LANE_COLOURS = {
 }
 
 
-# ── Typography scale: Rajdhani, pixel sizes for the 800x480 panel, one size per UI role ──
-# Screens use these names instead of literal sizes. Large numeric readouts (temperatures, Z offset,
-# progress %, keypad) are sized to their boxes and stay as they were approved; the top bar, sidebar,
-# Back key and Emergency Stop keep their approved sizes.
-TITLE = 30     # page title (main pages and submenus) — approved size, kept
-SUBTITLE = 15  # line under the page title
-HEADING = 17   # panel / section heading ("Step Distance (mm)", "Presets")
-CAPS = 16      # uppercase card / group heading ("TEMPERATURES", "PRINT PROGRESS", "CONTROLS")
-NAME = 19      # primary item name in a card (file being printed), preset names
-CARD = 18      # card title (heater, fan, tool, lane names)
-FIELD = 18     # value inside a stepper / field
-BUTTON = 17    # button, tile and list-row label
-LABEL = 16     # emphasised secondary text: key/value rows, row values
-BODY = 15      # secondary information (details, descriptions, list metadata)
-CAPTION = 14   # small labels: units, "Current", axis names
-SMALL = 13     # minimum: tile subtitles, dense spots (tool T0–T4, lane numbers, chart axes)
-JOG = 18       # X± / Y± labels on the jog wheel
-JOG_Z = 20     # Z± labels on the Z keys
+# ── Typography scale: Rajdhani, design pixel sizes for the 800×480 panel ──────
+# All sizes pass through smin() so they scale down on smaller displays while
+# never going below the legibility minimum (10 px, enforced in config.smin).
+# At 800×480 smin(v) == v exactly — no visual change on the reference display.
+TITLE    = smin(30)   # page title (main pages and submenus)
+SUBTITLE = smin(15)   # line under the page title
+HEADING  = smin(17)   # panel / section heading
+CAPS     = smin(16)   # uppercase card / group heading
+NAME     = smin(19)   # primary item name in a card
+CARD     = smin(18)   # card title (heater, fan, tool, lane names)
+FIELD    = smin(18)   # value inside a stepper / field
+BUTTON   = smin(17)   # button, tile and list-row label
+LABEL    = smin(16)   # emphasised secondary text: key/value rows
+BODY     = smin(15)   # secondary information
+CAPTION  = smin(14)   # small labels: units, "Current", axis names
+SMALL    = smin(13)   # minimum: tile subtitles, dense spots
+JOG      = smin(18)   # X± / Y± labels on the jog wheel
+JOG_Z    = smin(20)   # Z± labels on the Z keys
 
 
 def load_fonts():

@@ -7,6 +7,7 @@ from PyQt6.QtCore import QRectF, Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.screens.addon_common import place_buttons
 from nexus.screens.zoffset import CurrentPanel
 from nexus.widgets.panels import Panel, SubScreen, Tile
@@ -30,11 +31,11 @@ class BabyStepScreen(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.current = CurrentPanel(self)
-        self.current.setGeometry(8, 58, 250, 378)
+        self.current.setGeometry(sx(8), sy(58), sx(250), sy(378))
         self.keys = {}
         for title, deltas, y in (("Raise Nozzle  (+)", RAISE, 58), ("Lower Nozzle  (-)", LOWER, 251)):
             panel = Panel(title, self)
-            panel.setGeometry(266, y, 526, 185)
+            panel.setGeometry(sx(266), sy(y), sx(526), sy(185))
             row = []
             for d in deltas:
                 t = Tile(self._key_painter(d), panel)
@@ -42,17 +43,17 @@ class BabyStepScreen(SubScreen):
                 t.clicked.connect(lambda _=False, v=d: self.adjust.emit(v))
                 self.keys[d] = t
                 row.append(t)
-            place_buttons(row, QRectF(6, 34, 514, 140), 4, 6)
+            place_buttons(row, QRectF(sx(6), sy(34), sx(514), sy(140)), 4, smin(6))
 
     @staticmethod
     def _key_painter(delta):
         def paint(p, r, selected):
-            p.setFont(theme.font(26, QFont.Weight.Bold))
+            p.setFont(theme.font(smin(26), QFont.Weight.Bold))
             p.setPen(theme.FG)
-            p.drawText(QRectF(r.x(), r.center().y() - 26, r.width(), 32), Qt.AlignmentFlag.AlignCenter, _label(delta))
+            p.drawText(QRectF(r.x(), r.center().y() - sy(26), r.width(), sy(32)), Qt.AlignmentFlag.AlignCenter, _label(delta))
             p.setFont(theme.font(theme.CAPTION, QFont.Weight.Medium))
             p.setPen(theme.DIM)
-            p.drawText(QRectF(r.x(), r.center().y() + 8, r.width(), 20), Qt.AlignmentFlag.AlignCenter, "mm")
+            p.drawText(QRectF(r.x(), r.center().y() + sy(8), r.width(), sy(20)), Qt.AlignmentFlag.AlignCenter, "mm")
         return paint
 
     def set_data(self, data):

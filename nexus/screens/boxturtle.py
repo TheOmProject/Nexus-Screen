@@ -4,6 +4,7 @@ from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import QButtonGroup
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.moonraker.commands import LANE_MOVE_MM
 from nexus.screens.addon_common import (HeatPanel, colour_name, default_temp, enable, fmt_temp, grid, paint_caption,
                                         paint_number_band, paint_status_dot, place_buttons)
@@ -46,13 +47,13 @@ class BoxTurtleDashboard(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.status = RowsPanel("System Status", self, label_w=92)
-        self.status.setGeometry(8, 58, 196, 250)
+        self.status.setGeometry(sx(8), sy(58), sx(196), sy(250))
         self.lanes_panel = Panel("Filament Lanes", self)
-        self.lanes_panel.setGeometry(212, 58, 580, 250)
+        self.lanes_panel.setGeometry(sx(212), sy(58), sx(580), sy(250))
         self.prev = SmallButton(icon=icons.back_arrow, parent=self.lanes_panel, checkable=False)
         self.next = SmallButton(icon=icons.chevron, parent=self.lanes_panel, checkable=False)
-        self.prev.setGeometry(580 - 84, 3, 36, 20)
-        self.next.setGeometry(580 - 44, 3, 36, 20)
+        self.prev.setGeometry(sx(496), sy(3), sx(36), sy(20))
+        self.next.setGeometry(sx(536), sy(3), sx(36), sy(20))
         self.prev.clicked.connect(lambda: self._page(-1))
         self.next.clicked.connect(lambda: self._page(1))
         self.group = QButtonGroup(self)
@@ -60,17 +61,17 @@ class BoxTurtleDashboard(SubScreen):
         self.tiles = []
         self._page_no = 0
         self.active = Panel("Active Tool", self)
-        self.active.setGeometry(8, 316, 300, 120)
+        self.active.setGeometry(sx(8), sy(316), sx(300), sy(120))
         self.active.paint_body = self._paint_active
         self.runout = Panel("Runout Lane", self)
-        self.runout.setGeometry(316, 316, 170, 120)
+        self.runout.setGeometry(sx(316), sy(316), sx(170), sy(120))
         self.runout.paint_body = self._paint_runout
         self.tools = Panel("Tools", self)
-        self.tools.setGeometry(494, 316, 298, 120)
+        self.tools.setGeometry(sx(494), sy(316), sx(298), sy(120))
         self.load = ActionTile(icons.load, "Load", parent=self.tools)
         self.unload = ActionTile(icons.unload, "Unload", parent=self.tools)
         self.manage_btn = ActionTile(icons.gear, "Manage", parent=self.tools)
-        place_buttons([self.load, self.unload, self.manage_btn], QRectF(4, 26, 290, 88), 3, 0)
+        place_buttons([self.load, self.unload, self.manage_btn], QRectF(sx(4), sy(26), sx(290), sy(88)), 3, 0)
         self.load.clicked.connect(lambda: self._lane_op("lane_load"))
         self.unload.clicked.connect(lambda: self._lane_op("lane_unload"))
         self.manage_btn.clicked.connect(self.manage)
@@ -112,7 +113,7 @@ class BoxTurtleDashboard(SubScreen):
         shown = lanes[self._page_no * MAX_TILES:(self._page_no + 1) * MAX_TILES]
         self._ensure_tiles(len(shown))
         cols = 4
-        cells = grid(QRectF(6, 24, 568, 220), max(len(shown), 1), cols, 0)
+        cells = grid(QRectF(sx(6), sy(24), sx(568), sy(220)), max(len(shown), 1), cols, 0)
         for i, t in enumerate(self.tiles):
             if i < len(shown):
                 lane = shown[i]
@@ -164,17 +165,17 @@ class BoxTurtleDashboard(SubScreen):
             p.setPen(theme.DIM)
             p.drawText(b, Qt.AlignmentFlag.AlignCenter, "No lane loaded")
             return
-        icons.spool_side(p, QRectF(b.x() + 6, b.y() + 14, 72, 58), QColor(lane["color"]))
-        p.setFont(theme.font(20, QFont.Weight.Bold))
+        icons.spool_side(p, QRectF(b.x() + sx(6), b.y() + sy(14), sx(72), sy(58)), QColor(lane["color"]))
+        p.setFont(theme.font(smin(20), QFont.Weight.Bold))
         p.setPen(theme.FG)
-        p.drawText(QRectF(b.x() + 96, b.y() + 10, 180, 26), Qt.AlignmentFlag.AlignVCenter, f"Lane {lane['name']}")
+        p.drawText(QRectF(b.x() + sx(96), b.y() + sy(10), sx(180), sy(26)), Qt.AlignmentFlag.AlignVCenter, f"Lane {lane['name']}")
         p.setFont(theme.font(theme.LABEL, QFont.Weight.Medium))
         p.setPen(theme.FG_SOFT)
-        p.drawText(QRectF(b.x() + 96, b.y() + 38, 180, 20), Qt.AlignmentFlag.AlignVCenter, _lane_label(lane))
-        paint_status_dot(p, QRectF(b.x() + 88, b.y(), 100, b.height() - 4), True)
+        p.drawText(QRectF(b.x() + sx(96), b.y() + sy(38), sx(180), sy(20)), Qt.AlignmentFlag.AlignVCenter, _lane_label(lane))
+        paint_status_dot(p, QRectF(b.x() + sx(88), b.y(), sx(100), b.height() - sy(4)), True)
         p.setFont(theme.font(theme.CAPTION, QFont.Weight.Medium))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(b.x() + 112, b.bottom() - 22, 160, 18), Qt.AlignmentFlag.AlignVCenter, "Loaded to toolhead")
+        p.drawText(QRectF(b.x() + sx(112), b.bottom() - sy(22), sx(160), sy(18)), Qt.AlignmentFlag.AlignVCenter, "Loaded to toolhead")
 
     def _paint_runout(self, p):
         bt, lanes = _lanes(self._data)
@@ -186,13 +187,13 @@ class BoxTurtleDashboard(SubScreen):
             p.setPen(theme.DIM)
             p.drawText(b, Qt.AlignmentFlag.AlignCenter, "None set")
             return
-        icons.spool_side(p, QRectF(b.x() + 4, b.y() + 18, 56, 46), QColor(nxt["color"]))
-        p.setFont(theme.font(18, QFont.Weight.Bold))
+        icons.spool_side(p, QRectF(b.x() + sx(4), b.y() + sy(18), sx(56), sy(46)), QColor(nxt["color"]))
+        p.setFont(theme.font(smin(18), QFont.Weight.Bold))
         p.setPen(theme.FG)
-        p.drawText(QRectF(b.x() + 68, b.y() + 14, 90, 24), Qt.AlignmentFlag.AlignVCenter, f"Lane {nxt['name']}")
+        p.drawText(QRectF(b.x() + sx(68), b.y() + sy(14), sx(90), sy(24)), Qt.AlignmentFlag.AlignVCenter, f"Lane {nxt['name']}")
         p.setFont(theme.font(theme.BODY, QFont.Weight.Medium))
         p.setPen(theme.FG_SOFT)
-        p.drawText(QRectF(b.x() + 68, b.y() + 40, 90, 20), Qt.AlignmentFlag.AlignVCenter, nxt["material"] or "--")
+        p.drawText(QRectF(b.x() + sx(68), b.y() + sy(40), sx(90), sy(20)), Qt.AlignmentFlag.AlignVCenter, nxt["material"] or "--")
 
 
 class LaneDetail(Panel):
@@ -202,8 +203,8 @@ class LaneDetail(Panel):
         self.lane = None
         self.colour_btn = SmallButton("Colour", parent=self, font_px=theme.BUTTON, checkable=False)
         self.material_btn = SmallButton("Material", parent=self, font_px=theme.BUTTON, checkable=False)
-        self.colour_btn.setGeometry(10, 114, 96, 30)
-        self.material_btn.setGeometry(10, 150, 96, 30)
+        self.colour_btn.setGeometry(sx(10), sy(114), sx(96), sy(30))
+        self.material_btn.setGeometry(sx(10), sy(150), sx(96), sy(30))
         self.colour_btn.clicked.connect(
             lambda: self.lane and self.ctl.pick_colour(f"Lane {self.lane['name']}", self.lane["color"],
                                                        lambda c: self.ctl.run("lane_color", lane=self.lane["id"], color=c)))
@@ -221,8 +222,8 @@ class LaneDetail(Panel):
         lane = self.lane
         if not lane:
             return
-        icons.spool_side(p, QRectF(18, 34, 82, 70), QColor(lane["color"]) if lane["loaded"] else QColor(theme.MUTED))
-        r = QRectF(116, 30, self.width() - 124, self.height() - 38)
+        icons.spool_side(p, QRectF(sx(18), sy(34), sx(82), sy(70)), QColor(lane["color"]) if lane["loaded"] else QColor(theme.MUTED))
+        r = QRectF(sx(116), sy(30), self.width() - sx(124), self.height() - sy(38))
         paint_rows(p, r, [
             ("Material", lane["material"] or "--", None),
             ("Colour", colour_name(lane["color"]), lane["color"]),
@@ -242,31 +243,31 @@ class BoxTurtleControls(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.select = Panel("Select Lane", self)
-        self.select.setGeometry(8, 58, 150, 190)
+        self.select.setGeometry(sx(8), sy(58), sx(150), sy(190))
         self.lane_group = QButtonGroup(self)
         self.lane_group.setExclusive(True)
         self.lane_buttons = []
         self.detail = LaneDetail(ctl, self)
-        self.detail.setGeometry(166, 58, 400, 190)
+        self.detail.setGeometry(sx(166), sy(58), sx(400), sy(190))
         self.heat = HeatPanel(ctl, self)
-        self.heat.setGeometry(574, 58, 218, 190)
+        self.heat.setGeometry(sx(574), sy(58), sx(218), sy(190))
         self.actions = Panel("Filament Actions", self)
-        self.actions.setGeometry(8, 256, 784, 88)
+        self.actions.setGeometry(sx(8), sy(256), sx(784), sy(88))
         a = self.actions
         self.load = ActionTile(icons.load, "Load", "Load to toolhead", True, a)
         self.unload = ActionTile(icons.unload, "Unload", "Unload from toolhead", parent=a)
         self.change = ActionTile(icons.swap, "Change To", "Swap to this lane", parent=a)
         self.advance = ActionTile(icons.advance, "Advance", f"Move +{LANE_MOVE_MM} mm", parent=a)
         self.retract = ActionTile(icons.retract, "Retract", f"Move −{LANE_MOVE_MM} mm", parent=a)
-        place_buttons([self.load, self.unload, self.change, self.advance, self.retract], QRectF(4, 22, 776, 62), 5, 0)
+        place_buttons([self.load, self.unload, self.change, self.advance, self.retract], QRectF(sx(4), sy(22), sx(776), sy(62)), 5, 0)
         self.utils = Panel("Utilities", self)
-        self.utils.setGeometry(8, 352, 784, 84)
+        self.utils.setGeometry(sx(8), sy(352), sx(784), sy(84))
         u = self.utils
         self.park = ActionTile(icons.house, "Park", "Park the toolhead", parent=u)
         self.refresh = ActionTile(icons.refresh, "Refresh Status", "Re-read AFC state", parent=u)
         self.reset = ActionTile(icons.warning, "Clear Error", "Reset AFC failure", parent=u)
         self.eject = ActionTile(icons.eject, "Eject Lane", "Unload lane to the box", parent=u)
-        place_buttons([self.park, self.refresh, self.reset, self.eject], QRectF(4, 22, 776, 58), 4, 0)
+        place_buttons([self.park, self.refresh, self.reset, self.eject], QRectF(sx(4), sy(22), sx(776), sy(58)), 4, 0)
         for btn, key in ((self.load, "lane_load"), (self.unload, "lane_unload"), (self.change, "lane_select"),
                          (self.eject, "lane_eject")):
             btn.clicked.connect(lambda _=False, k=key: self._lane_op(k))
@@ -292,7 +293,7 @@ class BoxTurtleControls(SubScreen):
         _, lanes = _lanes(data)
         sel = _selected(data)
         while len(self.lane_buttons) < len(lanes):
-            b = SmallButton(str(len(self.lane_buttons) + 1), parent=self.select, font_px=17)
+            b = SmallButton(str(len(self.lane_buttons) + 1), parent=self.select, font_px=smin(17))
             self.lane_group.addButton(b)
             self.lane_buttons.append(b)
         for b, lane in zip(self.lane_buttons, lanes):
@@ -305,7 +306,7 @@ class BoxTurtleControls(SubScreen):
             b.show()
         for b in self.lane_buttons[len(lanes):]:
             b.hide()
-        place_buttons(self.lane_buttons[:len(lanes)], QRectF(8, 28, 134, 154), 2, 6)
+        place_buttons(self.lane_buttons[:len(lanes)], QRectF(sx(8), sy(28), sx(134), sy(154)), 2, smin(6))
         self.detail.set_lane(sel, data)
         if sel and (sel["id"], sel["material"]) != self._heat_for:  # re-derive on lane or material change
             self._heat_for = (sel["id"], sel["material"])

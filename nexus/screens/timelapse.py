@@ -4,6 +4,7 @@ from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QFont
 
 from nexus import theme
+from nexus.config import sx, sy
 from nexus.screens.addon_common import Stepper, place_buttons
 from nexus.widgets import icons
 from nexus.widgets.buttons import SmallButton, ToggleSwitch
@@ -22,31 +23,31 @@ class TimelapseScreen(SubScreen):
         self.settings = None
         self.frames = None
         self.panel = Panel("Timelapse Settings", self)
-        self.panel.setGeometry(8, 58, 450, 300)
+        self.panel.setGeometry(sx(8), sy(58), sx(450), sy(300))
         self.panel.paint_body = self._paint_labels
         self.enabled = ToggleSwitch(self.panel)
-        self.enabled.setGeometry(330, 40, 56, 26)
+        self.enabled.setGeometry(sx(330), sy(40), sx(56), sy(26))
         self.enabled.clicked.connect(lambda: self._set(enabled=self.enabled.isChecked()))
         self.mode_btns = {}
         for i, (key, label) in enumerate(MODES):
             b = SmallButton(label, parent=self.panel, font_px=theme.BUTTON, checkable=True)
-            b.setGeometry(170 + i * 136, 84, 130, 38)
+            b.setGeometry(sx(170 + i * 136), sy(84), sx(130), sy(38))
             b.clicked.connect(lambda _=False, k=key: self._set(mode=k))
             self.mode_btns[key] = b
         self.cycle = Stepper(self.panel, lambda d: self._set(hyperlapse_cycle=max(1, self.settings["hyperlapse_cycle"] + d * 5)))
-        self.cycle.place(170, 136, 266, 38, key_w=46)
+        self.cycle.place(sx(170), sy(136), sx(266), sy(38), key_w=sx(46))
         self.fps = Stepper(self.panel, lambda d: self._set(output_framerate=max(1, min(60, self.settings["output_framerate"] + d * 5))))
-        self.fps.place(170, 188, 266, 38, key_w=46)
+        self.fps.place(sx(170), sy(188), sx(266), sy(38), key_w=sx(46))
         self.autorender = ToggleSwitch(self.panel)
-        self.autorender.setGeometry(330, 248, 56, 26)
+        self.autorender.setGeometry(sx(330), sy(248), sx(56), sy(26))
         self.autorender.clicked.connect(lambda: self._set(autorender=self.autorender.isChecked()))
         self.status = RowsPanel("Current Print Timelapse", self, label_w=130)
-        self.status.setGeometry(466, 58, 326, 300)
+        self.status.setGeometry(sx(466), sy(58), sx(326), sy(300))
         self.actions = Panel("", self)
-        self.actions.setGeometry(8, 366, 784, 70)
+        self.actions.setGeometry(sx(8), sy(366), sx(784), sy(70))
         self.render = ActionTile(icons.play, "Render Now", "Build the video from frames", True, self.actions)
         self.refresh = ActionTile(icons.refresh, "Refresh", "Re-read timelapse status", parent=self.actions)
-        place_buttons([self.render, self.refresh], QRectF(2, 2, 780, 66), 2, 0)
+        place_buttons([self.render, self.refresh], QRectF(sx(2), sy(2), sx(780), sy(66)), 2, 0)
         self.render.clicked.connect(lambda: self.ctl.call("timelapse_render"))
         self.refresh.clicked.connect(self.reload)
         self._data = {}
