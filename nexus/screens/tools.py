@@ -4,6 +4,7 @@ from PyQt6.QtCore import QRectF, Qt, QTimer
 from PyQt6.QtGui import QColor, QFont
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.screens.addon_common import enable, grid, paint_bar, place_buttons
 from nexus.widgets import icons
 from nexus.widgets.buttons import SmallButton, ToggleSwitch
@@ -57,7 +58,7 @@ class TextView(Panel):
         paint_panel(p, r, 5, top=QColor(6, 7, 9), bottom=QColor(10, 11, 13), border=QColor(40, 44, 50), alpha=255)
         n = self.visible_count()
         end = len(self.lines) - self.offset
-        p.setFont(mono(12))
+        p.setFont(mono(smin(12)))
         for i, line in enumerate(self.lines[max(0, end - n):end]):
             colour = self.colourize(line) if self.colourize else None
             p.setPen(QColor(colour) if colour else theme.FG_SOFT)
@@ -83,22 +84,22 @@ class ConsoleScreen(SubScreen):
         self.ctl = ctl
         self.view = TextView("", self, lambda l: theme.RED if l.startswith("!!") else
                              ("#ffffff" if l.startswith(">") else None))
-        self.view.setGeometry(8, 58, 520, 306)
+        self.view.setGeometry(sx(8), sy(58), sx(520), sy(306))
         self.quick = Panel("Quick Commands", self)
-        self.quick.setGeometry(536, 58, 256, 306)
+        self.quick.setGeometry(sx(536), sy(58), sx(256), sy(306))
         self.quick_btns = []
         for cmd, label in QUICK:
             b = ActionTile(icons.terminal, cmd, label, parent=self.quick)
             b.clicked.connect(lambda _=False, c=cmd: self.send(c))
             self.quick_btns.append(b)
-        place_buttons(self.quick_btns, QRectF(2, 24, 252, 280), 1, 0)
+        place_buttons(self.quick_btns, QRectF(sx(2), sy(24), sx(252), sy(280)), 1, 0)
         self.bar = Panel("", self)
-        self.bar.setGeometry(8, 372, 784, 64)
+        self.bar.setGeometry(sx(8), sy(372), sx(784), sy(64))
         self.entry = SmallButton("Enter G-code command…", parent=self.bar, font_px=theme.BUTTON, checkable=False)
-        self.entry.setGeometry(8, 8, 380, 48)
+        self.entry.setGeometry(sx(8), sy(8), sx(380), sy(48))
         self.entry.clicked.connect(lambda: self.ctl.keyboard("Send G-code", "", self.send))
         self.refresh_btn = ActionTile(icons.refresh, "Refresh", parent=self.bar)
-        self.refresh_btn.setGeometry(396, 2, 190, 60)
+        self.refresh_btn.setGeometry(sx(396), sy(2), sx(190), sy(60))
         self.refresh_btn.clicked.connect(self.reload)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.reload)
@@ -142,17 +143,17 @@ class LogsScreen(SubScreen):
         self.ctl = ctl
         self.current = None
         self.files = ListPanel("Log Files", text_row(lambda i: i), rows=8, parent=self, empty_text="No logs available")
-        self.files.setGeometry(8, 58, 200, 378)
+        self.files.setGeometry(sx(8), sy(58), sx(200), sy(378))
         self.files.chosen.connect(self.open_log)
         self.view = TextView("Log Viewer", self, log_colour)
-        self.view.setGeometry(216, 58, 576, 306)
+        self.view.setGeometry(sx(216), sy(58), sx(576), sy(306))
         self.auto = ToggleSwitch(self.view)
-        self.auto.setGeometry(576 - 66, 3, 50, 22)
+        self.auto.setGeometry(sx(510), sy(3), sx(50), sy(22))
         self.auto.setChecked(True)
         self.bar = Panel("", self)
-        self.bar.setGeometry(216, 372, 576, 64)
+        self.bar.setGeometry(sx(216), sy(372), sx(576), sy(64))
         self.refresh_btn = ActionTile(icons.refresh, "Refresh", "Read the latest lines", True, self.bar)
-        self.refresh_btn.setGeometry(2, 2, 286, 60)
+        self.refresh_btn.setGeometry(sx(2), sy(2), sx(286), sy(60))
         self.refresh_btn.clicked.connect(lambda: self.open_log(self.current))
         self.timer = QTimer(self)
         self.timer.timeout.connect(lambda: self.auto.isChecked() and self.current and self.open_log(self.current))
@@ -240,19 +241,19 @@ class SystemScreen(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.info = RowsPanel("System Info", self, label_w=120)
-        self.info.setGeometry(8, 58, 380, 292)
+        self.info.setGeometry(sx(8), sy(58), sx(380), sy(292))
         self.usage = Panel("Usage", self)
-        self.usage.setGeometry(396, 58, 396, 100)
+        self.usage.setGeometry(sx(396), sy(58), sx(396), sy(100))
         self.usage.paint_body = self._paint_usage
         self.services = ServicesPanel(ctl, self)
-        self.services.setGeometry(396, 166, 396, 184)
+        self.services.setGeometry(sx(396), sy(166), sx(396), sy(184))
         self.actions = Panel("Actions", self)
-        self.actions.setGeometry(8, 358, 784, 78)  # title strip above the tiles (as Fans "Additional Controls")
+        self.actions.setGeometry(sx(8), sy(358), sx(784), sy(78))
         self.fw_btn = ActionTile(icons.refresh, "Restart Firmware", "FIRMWARE_RESTART", True, self.actions)
         self.reboot_btn = ActionTile(icons.refresh, "Restart Host", "Reboot the Pi", parent=self.actions)
         self.updates_btn = ActionTile(icons.load, "Check Updates", "Firmware & updates", parent=self.actions)
         self.off_btn = ActionTile(icons.warning, "Shutdown Host", "Power off safely", parent=self.actions)
-        place_buttons([self.fw_btn, self.reboot_btn, self.updates_btn, self.off_btn], QRectF(4, 22, 776, 52), 4, 0)
+        place_buttons([self.fw_btn, self.reboot_btn, self.updates_btn, self.off_btn], QRectF(sx(4), sy(22), sx(776), sy(52)), 4, 0)
         self.fw_btn.clicked.connect(lambda: self.ctl.confirm("Restart firmware?", "Runs FIRMWARE_RESTART: the MCUs "
                                     "restart and Klipper reloads its config.", "Restart",
                                     lambda: self.ctl.run("firmware_restart")))

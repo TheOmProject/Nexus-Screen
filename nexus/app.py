@@ -10,7 +10,7 @@ from PyQt6.QtGui import QPainter
 from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QWidget
 
 from nexus import theme
-from nexus.config import SCREEN_H, SCREEN_W, SIDEBAR_W, TOPBAR_H
+from nexus.config import SCREEN_H, SCREEN_W, SIDEBAR_W, TOPBAR_H, sx, sy
 from nexus.moonraker import commands
 from nexus.screens.baby_step import BabyStepScreen
 from nexus.screens.bed_mesh import BedMeshScreen
@@ -49,12 +49,12 @@ from nexus.widgets.overlays import (ColourPicker, ErrorDialog, HeaterPicker, Key
 from nexus.widgets.sidebar import Sidebar
 from nexus.widgets.topbar import TopBar
 
-FULL_TOPBAR_H = 36
-BACK_W = 120        # visible Back key width (78 approved originally, then 112)
-BACK_TOUCH_W = 130  # touch target: 10 px past the key over the (non-interactive) status box edge
-BACK_TOUCH_H = 60   # visible 34 px within the top bar + 26 px over the non-interactive screen title
+FULL_TOPBAR_H = sy(36)
+BACK_W        = sx(120)
+BACK_TOUCH_W  = sx(130)
+BACK_TOUCH_H  = sy(60)
 ACTIVE_STATES = ("printing", "paused")
-ESTOP_MAX_W = 160
+ESTOP_MAX_W   = sx(160)
 HEATER_LABELS = {"extruder": "Nozzle", "heater_bed": "Bed", "chamber": "Chamber"}
 
 

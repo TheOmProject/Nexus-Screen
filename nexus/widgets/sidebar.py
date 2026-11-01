@@ -4,6 +4,7 @@ from PyQt6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen
 from PyQt6.QtWidgets import QAbstractButton, QWidget
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.widgets import icons
 from nexus.widgets.glow_widget import paint_red_fill, red_glow
 
@@ -15,11 +16,11 @@ SECTIONS = [
     ("settings", "Settings", icons.gear),
 ]
 
-LOGO_H = 50
-ITEM_TOP = 56
-ITEM_H = 68
-ITEM_GAP = 4
-ITEM_INSET = 4
+LOGO_H = sy(50)
+ITEM_TOP = sy(56)
+ITEM_H = sy(68)
+ITEM_GAP = sy(4)
+ITEM_INSET = sx(4)
 
 
 class NavButton(QAbstractButton):
@@ -81,10 +82,10 @@ class NavButton(QAbstractButton):
         icon_c = QColor(theme.RED) if g > 0.5 else QColor(theme.FG_SOFT)
         if g > 0.5:
             icon_c = QColor(255, 58, 46)
-        self._icon(p, QRectF(w / 2 - 12, 13, 24, 24), icon_c)
-        p.setFont(theme.font(14, QFont.Weight.DemiBold if g > 0.5 else QFont.Weight.Medium))
+        self._icon(p, QRectF(w / 2 - smin(12), smin(13), smin(24), smin(24)), icon_c)
+        p.setFont(theme.font(smin(14), QFont.Weight.DemiBold if g > 0.5 else QFont.Weight.Medium))
         p.setPen(theme.FG if g > 0.5 else theme.FG_SOFT)
-        p.drawText(QRectF(0, 42, w, 18), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, self._label)
+        p.drawText(QRectF(0, smin(42), w, smin(18)), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, self._label)
         p.end()
 
 
@@ -124,13 +125,13 @@ class Sidebar(QWidget):
 
     def _paint_wordmark(self, p, r):
         # brushed-silver NEXUS over red SCREEN (as in the Fans / Move references)
-        silver = QLinearGradient(0, r.y() + 8, 0, r.y() + 28)
+        silver = QLinearGradient(0, r.y() + sy(8), 0, r.y() + sy(28))
         silver.setColorAt(0.0, QColor("#f2f4f7"))
         silver.setColorAt(0.55, QColor("#c9ced5"))
         silver.setColorAt(1.0, QColor("#9aa0a8"))
         p.setPen(QPen(silver, 1))
-        p.setFont(theme.font(21, QFont.Weight.Bold, 0.6))
-        p.drawText(QRectF(r.x(), r.y() + 6, r.width(), 22), Qt.AlignmentFlag.AlignCenter, "NEXUS")
+        p.setFont(theme.font(smin(21), QFont.Weight.Bold, 0.6))
+        p.drawText(QRectF(r.x(), r.y() + sy(6), r.width(), sy(22)), Qt.AlignmentFlag.AlignCenter, "NEXUS")
         p.setPen(QColor(theme.RED))
-        p.setFont(theme.font(13, QFont.Weight.DemiBold, 1.6))
-        p.drawText(QRectF(r.x(), r.y() + 27, r.width(), 16), Qt.AlignmentFlag.AlignCenter, "SCREEN")
+        p.setFont(theme.font(smin(13), QFont.Weight.DemiBold, 1.6))
+        p.drawText(QRectF(r.x(), r.y() + sy(27), r.width(), sy(16)), Qt.AlignmentFlag.AlignCenter, "SCREEN")

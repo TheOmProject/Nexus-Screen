@@ -154,7 +154,7 @@ def main():
 
     if args.capture:
         def grab():
-            img = app.primaryScreen().grabWindow(0).toImage()
+            img = win.grab().toImage()
             img.setText("nexus-build", _build_id())
             img.setText("nexus-args", " ".join(sys.argv[1:]))
             img.setText("nexus-platform", app.platformName())

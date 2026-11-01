@@ -5,6 +5,7 @@ from PyQt6.QtGui import QColor, QFont, QPainter
 from PyQt6.QtWidgets import QButtonGroup, QWidget
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.moonraker.commands import XY_FEED, Z_FEED
 from nexus.screens.addon_common import place_buttons
 from nexus.widgets import icons
@@ -50,7 +51,7 @@ class PositionPanel(Panel):
             p.drawText(QRectF(x + 4, 26, w, 16), Qt.AlignmentFlag.AlignVCenter, axis)
             box = QRectF(x, 44, w, 40)
             paint_panel(p, box, 5, top=QColor(8, 9, 11), bottom=QColor(16, 18, 21), border=QColor(52, 56, 62))
-            p.setFont(theme.font(19, QFont.Weight.Bold))
+            p.setFont(theme.font(smin(19), QFont.Weight.Bold))
             p.setPen(theme.FG if axis.lower() in homed else theme.MUTED)
             p.drawText(box, Qt.AlignmentFlag.AlignCenter, f"{pos[i]:.2f}" if axis == "Z" else f"{pos[i]:.1f}")
 
@@ -92,15 +93,15 @@ class MoveScreen(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.wheel = JogWheel(self)
-        self.wheel.setGeometry(14, 52, 304, 304)
+        self.wheel.setGeometry(sx(14), sy(52), smin(304), smin(304))
         self.wheel.jog.connect(self._jog)
         self.wheel.home.connect(lambda: self.ctl.run("home", axes=""))
         self.z = ZRocker(self)
-        self.z.setGeometry(330, 60, 88, 290)
+        self.z.setGeometry(sx(330), sy(60), sx(88), sy(290))
         self.z.up.clicked.connect(lambda: self._jog("Z", 1))
         self.z.down.clicked.connect(lambda: self._jog("Z", -1))
         self.step_panel = Panel("Step Distance (mm)", self)
-        self.step_panel.setGeometry(428, 58, 364, 76)
+        self.step_panel.setGeometry(sx(428), sy(58), sx(364), sy(76))
         self.step_group = QButtonGroup(self)
         self.step_group.setExclusive(True)
         self.step_buttons = {}
@@ -108,26 +109,26 @@ class MoveScreen(SubScreen):
             b = SmallButton(f"{s:g}", parent=self.step_panel, font_px=theme.BUTTON)
             self.step_group.addButton(b)
             self.step_buttons[s] = b
-        place_buttons(list(self.step_buttons.values()), QRectF(8, 28, 348, 40), 5, 6)
+        place_buttons(list(self.step_buttons.values()), QRectF(sx(8), sy(28), sx(348), sy(40)), 5, 6)
         self.step_buttons[DEFAULT_STEP].setChecked(True)
         self.position = PositionPanel(self)
-        self.position.setGeometry(428, 142, 364, 96)
+        self.position.setGeometry(sx(428), sy(142), sx(364), sy(96))
         self.quick = Panel("Quick Move", self)
-        self.quick.setGeometry(428, 246, 364, 104)
+        self.quick.setGeometry(sx(428), sy(246), sx(364), sy(104))
         self.home_btns = {}
         for label, axes in (("Home X", " X"), ("Home Y", " Y"), ("Home Z", " Z"), ("Home All", "")):
             b = ActionTile(icons.house, label, parent=self.quick)
             b.clicked.connect(lambda _=False, a=axes: self.ctl.run("home", axes=a))
             self.home_btns[label] = b
-        place_buttons(list(self.home_btns.values()), QRectF(4, 22, 356, 78), 4, 0)
+        place_buttons(list(self.home_btns.values()), QRectF(sx(4), sy(22), sx(356), sy(78)), 4, 0)
         self.presets = Panel("Presets", self)
-        self.presets.setGeometry(8, 358, 784, 78)
+        self.presets.setGeometry(sx(8), sy(358), sx(784), sy(78))
         self.preset_btns = {}
         for name, icon in PRESETS:
             b = ActionTile(icon, name, parent=self.presets)
             b.clicked.connect(lambda _=False, n=name: self._goto(n))
             self.preset_btns[name] = b
-        place_buttons(list(self.preset_btns.values()), QRectF(4, 22, 776, 52), 5, 0)
+        place_buttons(list(self.preset_btns.values()), QRectF(sx(4), sy(22), sx(776), sy(52)), 5, 0)
         self._data = {}
 
     def step(self):

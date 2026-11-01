@@ -2,6 +2,7 @@
 tile. Entries without a defined function are shown disabled ("Not available")."""
 from PyQt6.QtCore import QRectF
 
+from nexus.config import sx, sy
 from nexus.screens.addon_common import place_buttons
 from nexus.widgets.panels import ActionTile, SubScreen
 
@@ -18,8 +19,8 @@ class HubScreen(SubScreen):
                 t.clicked.connect(action)
             t.setEnabled(action is not None)
             self.tiles[name] = t
-        place_buttons([self.tiles[e[0]] for e in entries], QRectF(4, 52, 792, 300), 3, 0)
-        self.tiles[wide[0]].setGeometry(4, 354, 792, 82)
+        place_buttons([self.tiles[e[0]] for e in entries], QRectF(sx(4), sy(52), sx(792), sy(300)), 3, 0)
+        self.tiles[wide[0]].setGeometry(sx(4), sy(354), sx(792), sy(82))
         self.requires = {}  # tile title -> predicate(data): enabled only when it holds
 
     def set_data(self, data):

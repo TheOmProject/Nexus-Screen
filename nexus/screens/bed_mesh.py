@@ -4,6 +4,7 @@ from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QFont, QLinearGradient
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.screens.addon_common import enable, place_buttons
 from nexus.widgets import icons
 from nexus.widgets.bed_mesh_chart import HIGH, LOW, MID, BedMeshChart, mesh_stats
@@ -20,7 +21,7 @@ class ChartPanel(Panel):
         self.scale = 0.0
 
     def resizeEvent(self, e):
-        self.chart.setGeometry(10, 30, self.width() - 20, self.height() - 76)
+        self.chart.setGeometry(sx(10), sy(30), self.width() - sx(20), self.height() - sy(76))
         super().resizeEvent(e)
 
     def set_matrix(self, title, matrix):
@@ -33,7 +34,7 @@ class ChartPanel(Panel):
         w, h = self.width(), self.height()
         if not self.scale:
             return
-        bar = QRectF(60, h - 34, w - 120, 10)
+        bar = QRectF(sx(60), h - sy(34), w - sx(120), sy(10))
         g = QLinearGradient(bar.topLeft(), bar.topRight())
         g.setColorAt(0, LOW)
         g.setColorAt(0.5, MID)
@@ -43,10 +44,10 @@ class ChartPanel(Panel):
         p.drawRoundedRect(bar, 5, 5)
         p.setFont(theme.font(theme.CAPTION, QFont.Weight.DemiBold))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(4, h - 40, 52, 22), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
+        p.drawText(QRectF(sx(4), h - sy(40), sx(52), sy(22)), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
                    f"{-self.scale:+.2f}")
-        p.drawText(QRectF(w - 56, h - 40, 52, 22), Qt.AlignmentFlag.AlignVCenter, f"{self.scale:+.2f}")
-        p.drawText(QRectF(0, h - 22, w, 16), Qt.AlignmentFlag.AlignCenter, "mm · front of bed at the bottom")
+        p.drawText(QRectF(w - sx(56), h - sy(40), sx(52), sy(22)), Qt.AlignmentFlag.AlignVCenter, f"{self.scale:+.2f}")
+        p.drawText(QRectF(0, h - sy(22), w, sy(16)), Qt.AlignmentFlag.AlignCenter, "mm · front of bed at the bottom")
 
 
 class BedMeshScreen(SubScreen):
@@ -58,21 +59,21 @@ class BedMeshScreen(SubScreen):
         self.ctl = ctl
         self.view_profile = None  # profile previewed in the chart; None = the loaded mesh
         self.chart = ChartPanel(self)
-        self.chart.setGeometry(8, 58, 440, 378)
+        self.chart.setGeometry(sx(8), sy(58), sx(440), sy(378))
         self.info = RowsPanel("Mesh Info", self, label_w=96)
-        self.info.setGeometry(456, 58, 336, 150)
+        self.info.setGeometry(sx(456), sy(58), sx(336), sy(150))
         self.profiles = Panel("Profiles", self)
-        self.profiles.setGeometry(456, 216, 336, 112)
+        self.profiles.setGeometry(sx(456), sy(216), sx(336), sy(112))
         self.profile_btns = [SmallButton("", parent=self.profiles, font_px=theme.BUTTON, checkable=True) for _ in range(MAX_PROFILES)]
         for b in self.profile_btns:
             b.clicked.connect(lambda _=False, btn=b: self._preview(btn._text))
-        place_buttons(self.profile_btns, QRectF(8, 28, 320, 76), 2, 6)
+        place_buttons(self.profile_btns, QRectF(sx(8), sy(28), sx(320), sy(76)), 2, smin(6))
         self.actions = Panel("", self)
-        self.actions.setGeometry(456, 336, 336, 100)
+        self.actions.setGeometry(sx(456), sy(336), sx(336), sy(100))
         self.calibrate = ActionTile(icons.mesh_grid, "Calibrate", parent=self.actions, stacked=True)
         self.load = ActionTile(icons.load, "Load", parent=self.actions, stacked=True)
         self.clear = ActionTile(icons.eject, "Clear", parent=self.actions, stacked=True)
-        place_buttons([self.calibrate, self.load, self.clear], QRectF(4, 4, 328, 92), 3, 0)
+        place_buttons([self.calibrate, self.load, self.clear], QRectF(sx(4), sy(4), sx(328), sy(92)), 3, 0)
         self.calibrate.clicked.connect(lambda: self.ctl.confirm(
             "Calibrate Bed Mesh?", "Probes the bed (BED_MESH_CALIBRATE). This takes several minutes and the "
             "toolhead will move.", "Start", lambda: self.ctl.run("mesh_calibrate")))

@@ -10,6 +10,7 @@ from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QPainter
 from PyQt6.QtWidgets import QWidget
 
 from nexus import theme
+from nexus.config import sx, sy, smin, SCREEN_W, SCREEN_H
 from nexus.display import TIMEOUTS
 from nexus.screens.addon_common import Stepper, paint_bar, place_buttons
 from nexus.widgets import icons
@@ -69,11 +70,11 @@ class TabbedScreen(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.tab_list = ListPanel("", text_row(lambda t: t[1]), rows=max(len(tabs), 5), parent=self, top=6)
-        self.tab_list.setGeometry(8, 58, tab_w, 378)
+        self.tab_list.setGeometry(sx(8), sy(58), sx(tab_w), sy(378))
         self.tab_list.key = lambda t: t[0]
         self.tab_list.chosen.connect(lambda t: self.select(t[0]))
         self.tab_list.set_items(tabs, tabs[0][0])
-        self.page_rect = QRectF(tab_w + 16, 58, 784 - tab_w - 8, 378)
+        self.page_rect = QRectF(sx(tab_w + 16), sy(58), sx(784 - tab_w - 8), sy(378))
         self.pages = {}
 
     def select(self, key):
@@ -102,7 +103,7 @@ class ScreenSettings(TabbedScreen):
         self.bright_val = d.brightness()
         bright.paint_body = self._paint_bright
         self.bright_step = Stepper(bright, self._bright, font_px=theme.FIELD)
-        self.bright_step.place(16, 120, self.page_rect.width() - 32, 50, key_w=70)
+        self.bright_step.place(sx(16), sy(120), self.page_rect.width() - sx(32), sy(50), key_w=sx(70))
         timeout = Panel("Screen Timeout", None)
         self.add_page("timeout", timeout)
         self.timeout_btns = {}
@@ -110,7 +111,7 @@ class ScreenSettings(TabbedScreen):
             b = SmallButton("Never" if m == 0 else f"{m} min", parent=timeout, font_px=theme.BUTTON, checkable=True)
             b.clicked.connect(lambda _=False, v=m: self._timeout(v))
             self.timeout_btns[m] = b
-        place_buttons(list(self.timeout_btns.values()), QRectF(12, 40, self.page_rect.width() - 24, 56), 5, 8)
+        place_buttons(list(self.timeout_btns.values()), QRectF(sx(12), sy(40), self.page_rect.width() - sx(24), sy(56)), 5, sx(8))
         self.info = RowsPanel("Display Info", None, label_w=150)
         self.add_page("display", self.info)
         self._sync()
@@ -119,7 +120,7 @@ class ScreenSettings(TabbedScreen):
         r = QRectF(16, 50, self.page_rect.width() - 32, 50)
         icons.bulb(p, QRectF(r.x(), r.y() + 10, 24, 30), QColor(theme.FG_SOFT))
         paint_bar(p, QRectF(r.x() + 40, r.center().y() - 5, r.width() - 120, 10), self.bright_val / 100, theme.RED)
-        p.setFont(theme.font(20, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(20), QFont.Weight.Bold))
         p.setPen(theme.FG)
         p.drawText(QRectF(r.right() - 70, r.y(), 70, r.height()), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
                    f"{self.bright_val}%")
@@ -144,7 +145,7 @@ class ScreenSettings(TabbedScreen):
         for m, b in self.timeout_btns.items():
             b.setChecked(d.prefs["timeout_min"] == m)
         bl = d.describe()
-        self.info.set_rows([("Resolution", "800 × 480", None), ("Qt platform", self.ctl.platform_name(), None),
+        self.info.set_rows([("Resolution", f"{SCREEN_W} × {SCREEN_H}", None), ("Qt platform", self.ctl.platform_name(), None),
                             ("Backlight", bl["backlight"], None), ("Max level", str(bl["max"] or "-"), None)])
         for w in self.pages.values():
             w.update()
@@ -341,11 +342,11 @@ class CameraSettings(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.status = RowsPanel("Camera Status", self, label_w=130)
-        self.status.setGeometry(8, 58, 784, 290)
+        self.status.setGeometry(sx(8), sy(58), sx(784), sy(290))
         self.actions = Panel("", self)
-        self.actions.setGeometry(8, 356, 784, 80)
+        self.actions.setGeometry(sx(8), sy(356), sx(784), sy(80))
         self.open_btn = ActionTile(icons.camera, "Open Webcam", "Live view", True, self.actions)
-        self.open_btn.setGeometry(2, 2, 388, 76)
+        self.open_btn.setGeometry(sx(2), sy(2), sx(388), sy(76))
         self.open_btn.clicked.connect(lambda: self.ctl.open("webcam"))
 
     def showEvent(self, e):
@@ -377,17 +378,17 @@ class FirmwareScreen(SubScreen):
         self.info = {}
         self.list = ListPanel("", text_row(lambda c: c.capitalize()), rows=7, parent=self, top=6,
                               empty_text="Update information unavailable")
-        self.list.setGeometry(8, 58, 190, 378)
+        self.list.setGeometry(sx(8), sy(58), sx(190), sy(378))
         self.list.chosen.connect(lambda c: self._show(c))
         self.details = RowsPanel("Details", self, label_w=150)
-        self.details.setGeometry(206, 58, 586, 218)
+        self.details.setGeometry(sx(206), sy(58), sx(586), sy(218))
         self.actions = Panel("Actions", self)
-        self.actions.setGeometry(206, 284, 586, 152)
+        self.actions.setGeometry(sx(206), sy(284), sx(586), sy(152))
         self.restart_btn = ActionTile(icons.refresh, "Restart Klipper", "Reload config", True, self.actions)
         self.fw_btn = ActionTile(icons.refresh, "Firmware Restart", "Restart MCUs", parent=self.actions)
         self.logs_btn = ActionTile(icons.terminal, "View Logs", "klippy.log", parent=self.actions)
         self.check_btn = ActionTile(icons.load, "Check Updates", "Refresh update status", parent=self.actions)
-        place_buttons([self.restart_btn, self.fw_btn, self.logs_btn, self.check_btn], QRectF(4, 24, 578, 124), 2, 0)
+        place_buttons([self.restart_btn, self.fw_btn, self.logs_btn, self.check_btn], QRectF(sx(4), sy(24), sx(578), sy(124)), 2, 0)
         self.restart_btn.clicked.connect(lambda: self.ctl.confirm("Restart Klipper?", "Klipper reloads printer.cfg.",
                                          "Restart", lambda: self.ctl.call("klipper_restart")))
         self.fw_btn.clicked.connect(lambda: self.ctl.confirm("Firmware restart?", "Runs FIRMWARE_RESTART.", "Restart",
@@ -443,10 +444,10 @@ class AboutScreen(SubScreen):
     def __init__(self, ctl, parent=None):
         super().__init__(parent)
         self.info = RowsPanel("Nexus Screen", self, label_w=180)
-        self.info.setGeometry(8, 58, 784, 378)
+        self.info.setGeometry(sx(8), sy(58), sx(784), sy(378))
         self.info.set_rows([("Application", "Nexus Screen (PyQt6)", None), ("Build", build_id(), None),
                             ("PyQt / Qt", f"{PYQT_VERSION_STR} / {QT_VERSION_STR}", None),
-                            ("Python", sys.version.split()[0], None), ("Display", "800 × 480 touchscreen", None),
+                            ("Python", sys.version.split()[0], None), ("Display", f"{SCREEN_W} × {SCREEN_H} touchscreen", None),
                             ("Typeface", "Rajdhani (SIL Open Font License)", None),
                             ("Printer API", "Moonraker (REST)", None)])
 

@@ -10,6 +10,7 @@ from PyQt6.QtGui import QColor, QFont, QPainter
 from PyQt6.QtWidgets import QWidget
 
 from nexus import theme
+from nexus.config import sx, sy
 from nexus.screens.addon_common import place_buttons
 from nexus.screens.print_status import ThumbnailView
 from nexus.widgets import icons
@@ -74,21 +75,21 @@ class PrintFilesScreen(SubScreen):
         self.sort = "date"
         self.listing = None
         self.storage = RowsPanel("Storage", self, label_w=4)  # value-only rows
-        self.storage.setGeometry(8, 58, 150, 300)
+        self.storage.setGeometry(sx(8), sy(58), sx(150), sy(300))
         self.files = ListPanel("Files", FileRow.paint, rows=7, parent=self, top=50, empty_text="This folder is empty")
-        self.files.setGeometry(166, 58, 626, 300)
+        self.files.setGeometry(sx(166), sy(58), sx(626), sy(300))
         self.files.key = lambda item: item[1]
         self.files.chosen.connect(self._chosen)
         self.files.paint_body = self._paint_header
         self.actions = Panel("", self)
-        self.actions.setGeometry(8, 366, 784, 70)
+        self.actions.setGeometry(sx(8), sy(366), sx(784), sy(70))
         self.print_btn = ActionTile(icons.play, "Print", primary=True, parent=self.actions)
         self.preview_btn = ActionTile(icons.print_, "Preview", parent=self.actions)
         self.rename_btn = ActionTile(icons.terminal, "Rename", parent=self.actions)
         self.delete_btn = ActionTile(icons.eject, "Delete", parent=self.actions)
         self.sort_btn = ActionTile(icons.refresh, "Sort: Date", parent=self.actions)
         place_buttons([self.print_btn, self.preview_btn, self.rename_btn, self.delete_btn, self.sort_btn],
-                      QRectF(2, 2, 780, 66), 5, 0)
+                      QRectF(sx(2), sy(2), sx(780), sy(66)), 5, 0)
         self.print_btn.clicked.connect(lambda: self.ctl.confirm_print(self.selected_path()))
         self.preview_btn.clicked.connect(lambda: self.ctl.open_preview(self.selected_path()))
         self.rename_btn.clicked.connect(self._rename)
@@ -202,9 +203,9 @@ class FileDetails(SubScreen):
         self.filename = None
         self.meta = {}
         self.thumb = ThumbnailView(self)
-        self.thumb.setGeometry(8, 58, 330, 296)
+        self.thumb.setGeometry(sx(8), sy(58), sx(330), sy(296))
         self.details = RowsPanel("Details", self, label_w=140)
-        self.details.setGeometry(346, 58, 446, 296)
+        self.details.setGeometry(sx(346), sy(58), sx(446), sy(296))
 
     def load(self, filename):
         self.filename, self.meta = filename, {}
@@ -234,10 +235,10 @@ class FilePreviewScreen(FileDetails):
     def __init__(self, ctl, parent=None):
         super().__init__(ctl, parent)
         self.actions = Panel("", self)
-        self.actions.setGeometry(8, 362, 784, 74)
+        self.actions.setGeometry(sx(8), sy(362), sx(784), sy(74))
         self.print_btn = ActionTile(icons.play, "Start Print", "Begin printing this file", True, self.actions)
         self.delete_btn = ActionTile(icons.eject, "Delete", "Remove from the printer", parent=self.actions)
-        place_buttons([self.print_btn, self.delete_btn], QRectF(2, 2, 780, 70), 2, 0)
+        place_buttons([self.print_btn, self.delete_btn], QRectF(sx(2), sy(2), sx(780), sy(70)), 2, 0)
         self.print_btn.clicked.connect(lambda: self.ctl.confirm_print(self.filename))
         self.delete_btn.clicked.connect(lambda: self.ctl.confirm(
             f"Delete {os.path.basename(self.filename)}?", "The file is removed from the printer.", "Delete",
@@ -273,11 +274,11 @@ class PrintCompleteScreen(FileDetails):
         super().__init__(ctl, parent)
         self.stats = {}
         self.actions = Panel("", self)
-        self.actions.setGeometry(8, 362, 784, 74)
+        self.actions.setGeometry(sx(8), sy(362), sx(784), sy(74))
         self.home_btn = ActionTile(icons.house, "Return to Home", "Ready for next print", True, self.actions)
         self.view_btn = ActionTile(icons.print_, "View File", "Open the file details", parent=self.actions)
         self.again_btn = ActionTile(icons.refresh, "Print Again", "Start this file again", parent=self.actions)
-        place_buttons([self.home_btn, self.view_btn, self.again_btn], QRectF(2, 2, 780, 70), 3, 0)
+        place_buttons([self.home_btn, self.view_btn, self.again_btn], QRectF(sx(2), sy(2), sx(780), sy(70)), 3, 0)
         self.home_btn.clicked.connect(self.ctl.go_home)
         self.view_btn.clicked.connect(lambda: self.ctl.open_preview(self.filename))
         self.again_btn.clicked.connect(lambda: self.ctl.confirm_print(self.filename))
@@ -314,11 +315,11 @@ class PrintPage(QWidget):
         self.ctl = ctl
         self.files_tile = ActionTile(icons.print_, "Print Files", "Browse and start a print", True, self)
         self.status_tile = ActionTile(icons.play, "Return to Print", "No print running", parent=self)
-        place_buttons([self.files_tile, self.status_tile], QRectF(8, 82, 704, 90), 2, 0)
+        place_buttons([self.files_tile, self.status_tile], QRectF(sx(8), sy(82), sx(704), sy(90)), 2, 0)
         self.files_tile.clicked.connect(self.open_files)
         self.status_tile.clicked.connect(self.open_print)
         self.recent = ListPanel("Recent Files", FileRow.paint, rows=4, parent=self, empty_text="No print files")
-        self.recent.setGeometry(8, 182, 704, 252)
+        self.recent.setGeometry(sx(8), sy(182), sx(704), sy(252))
         self.recent.key = lambda item: item[1]
         self.recent.chosen.connect(lambda item: self.open_file.emit(item[1]))
 

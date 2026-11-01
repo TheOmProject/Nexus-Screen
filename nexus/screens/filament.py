@@ -5,6 +5,7 @@ from PyQt6.QtGui import QFont, QPainter
 from PyQt6.QtWidgets import QWidget
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.moonraker import profiles
 from nexus.screens.addon_common import Stepper, place_buttons
 from nexus.screens.extrusion import ExtruderStatus, NozzlePanel
@@ -36,16 +37,16 @@ class OptionsPanel(Panel):
 
     def resizeEvent(self, e):
         w = self.width()
-        self.material.setGeometry(124, 32, w - 132, 40)
+        self.material.setGeometry(sx(124), sy(32), w - sx(132), sy(40))
         for st, (_, y) in zip((self.load, self.unload, self.speed), self.ROWS[1:]):
-            st.place(124, y + 2, w - 132, 40, key_w=46)
+            st.place(sx(124), sy(y + 2), w - sx(132), sy(40), key_w=sx(46))
         super().resizeEvent(e)
 
     def paint_body(self, p):
         p.setFont(theme.font(theme.LABEL, QFont.Weight.Medium))
         p.setPen(theme.DIM)
         for label, y in self.ROWS:
-            p.drawText(QRectF(10, y + 2, 112, 40), Qt.AlignmentFlag.AlignVCenter, label)
+            p.drawText(QRectF(sx(10), sy(y + 2), sx(112), sy(40)), Qt.AlignmentFlag.AlignVCenter, label)
 
 
 class FilamentScreen(SubScreen):
@@ -58,13 +59,13 @@ class FilamentScreen(SubScreen):
         self.values = dict(DEFAULTS)
         self.material = None  # chosen profile name; None = the active profile
         self.temp = NozzlePanel(ctl, self)
-        self.temp.setGeometry(8, 58, 190, 250)
+        self.temp.setGeometry(sx(8), sy(58), sx(190), sy(250))
         self.options = OptionsPanel(self, self)
-        self.options.setGeometry(206, 58, 380, 250)
+        self.options.setGeometry(sx(206), sy(58), sx(380), sy(250))
         self.status = ExtruderStatus(self)
-        self.status.setGeometry(594, 58, 198, 250)
+        self.status.setGeometry(sx(594), sy(58), sx(198), sy(250))
         self.actions = Panel("Actions", self)
-        self.actions.setGeometry(8, 316, 784, 120)
+        self.actions.setGeometry(sx(8), sy(316), sx(784), sy(120))
         a = self.actions
         self.load_btn = ActionTile(icons.load, "Load", "Heat and load", True, a)
         self.unload_btn = ActionTile(icons.unload, "Unload", "Heat and unload", parent=a)
@@ -72,7 +73,7 @@ class FilamentScreen(SubScreen):
         self.retract_btn = ActionTile(icons.retract, "Retract", f"Manual {MANUAL_MM} mm", parent=a)
         self.stop_btn = ActionTile(icons.stop_square, "Stop", "Stop heating", parent=a)
         place_buttons([self.load_btn, self.unload_btn, self.extrude_btn, self.retract_btn, self.stop_btn],
-                      QRectF(4, 26, 776, 88), 5, 0)
+                      QRectF(sx(4), sy(26), sx(776), sy(88)), 5, 0)
         job = ctl.filament_job
         self.load_btn.clicked.connect(lambda: job.start("Loading", self.values["load"], self.values["speed"],
                                                         self._profile()["nozzle"]))
@@ -144,7 +145,7 @@ class FilamentPage(QWidget):
             t = ActionTile(icon, title, sub, parent=self)
             t.clicked.connect(lambda _=False, k=key: self.open_screen.emit(k))
             self.tiles[key] = t
-        place_buttons(list(self.tiles.values()), QRectF(8, 82, 704, 180), 2, 0)
+        place_buttons(list(self.tiles.values()), QRectF(sx(8), sy(82), sx(704), sy(180)), 2, 0)
 
     def set_data(self, data):
         for key in ("boxturtle", "stealthchanger"):  # add-ons only when detected
@@ -155,10 +156,10 @@ class FilamentPage(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.setFont(theme.font(theme.TITLE, QFont.Weight.Bold))
         p.setPen(theme.FG)
-        p.drawText(QRectF(14, 6, 500, 34), Qt.AlignmentFlag.AlignVCenter, "Filament")
+        p.drawText(QRectF(sx(14), sy(6), sx(500), sy(34)), Qt.AlignmentFlag.AlignVCenter, "Filament")
         p.setFont(theme.font(theme.SUBTITLE, QFont.Weight.Medium))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(15, 37, 500, 18), Qt.AlignmentFlag.AlignVCenter, "Load filament and manage materials")
+        p.drawText(QRectF(sx(15), sy(37), sx(500), sy(18)), Qt.AlignmentFlag.AlignVCenter, "Load filament and manage materials")
         p.setFont(theme.font(theme.CAPS, QFont.Weight.DemiBold, 0.6))
-        p.drawText(QRectF(15, 64, 300, 18), Qt.AlignmentFlag.AlignVCenter, "FILAMENT")
+        p.drawText(QRectF(sx(15), sy(64), sx(300), sy(18)), Qt.AlignmentFlag.AlignVCenter, "FILAMENT")
         p.end()

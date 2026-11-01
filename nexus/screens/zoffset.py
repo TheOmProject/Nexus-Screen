@@ -5,6 +5,7 @@ from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QColor, QFont
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.screens.addon_common import Stepper, enable, place_buttons
 from nexus.widgets import icons
 from nexus.widgets.buttons import SmallButton
@@ -33,7 +34,7 @@ class CurrentPanel(Panel):
     def paint_body(self, p):
         b = QRectF(8, 30, self.width() - 16, self.height() - 38)
         paint_panel(p, b, 6, top=QColor(8, 9, 11), bottom=QColor(16, 18, 21), border=QColor(52, 56, 62))
-        p.setFont(theme.font(38, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(38), QFont.Weight.Bold))
         p.setPen(theme.FG)
         p.drawText(b.adjusted(0, -10, 0, -10), Qt.AlignmentFlag.AlignCenter,
                    "--" if self.value is None else f"{self.value:.3f} mm")
@@ -50,31 +51,31 @@ class ZOffsetScreen(SubScreen):
         super().__init__(parent)
         self.ctl = ctl
         self.current = CurrentPanel(self)
-        self.current.setGeometry(8, 58, 250, 250)
+        self.current.setGeometry(sx(8), sy(58), sx(250), sy(250))
         self.adjust = Panel("Adjust Offset", self)
-        self.adjust.setGeometry(266, 58, 330, 250)
+        self.adjust.setGeometry(sx(266), sy(58), sx(330), sy(250))
         self.adjust_btns = []
         for d in ADJUST:
             b = SmallButton(f"{d:+.3f}".rstrip("0").rstrip("."), parent=self.adjust, font_px=theme.BUTTON, checkable=False)
             b.clicked.connect(lambda _=False, v=d: self._adjust(v))
             self.adjust_btns.append(b)
-        place_buttons(self.adjust_btns, QRectF(10, 32, 310, 112), 3, 8)
+        place_buttons(self.adjust_btns, QRectF(sx(10), sy(32), sx(310), sy(112)), 3, sx(8))
         self.stepper = Stepper(self.adjust, lambda d: self._adjust(d * STEP), font_px=theme.FIELD)
-        self.stepper.place(10, 168, 310, 64, key_w=64)
+        self.stepper.place(sx(10), sy(168), sx(310), sy(64), key_w=sx(64))
         self.presets = Panel("Presets", self)
-        self.presets.setGeometry(604, 58, 188, 250)
+        self.presets.setGeometry(sx(604), sy(58), sx(188), sy(250))
         self.preset_tiles = []
         for v in PRESETS:
             t = Tile(self._preset_painter(v), self.presets)
             t.setCheckable(False)
             t.clicked.connect(lambda _=False, z=v: self._preset(z))
             self.preset_tiles.append(t)
-        place_buttons(self.preset_tiles, QRectF(4, 24, 180, 222), 1, 0)
+        place_buttons(self.preset_tiles, QRectF(sx(4), sy(24), sx(180), sy(222)), 1, 0)
         self.actions = Panel("Actions", self)
-        self.actions.setGeometry(8, 316, 784, 120)
+        self.actions.setGeometry(sx(8), sy(316), sx(784), sy(120))
         self.save = ActionTile(icons.save, "Save Z Offset", "Apply to probe and save config", True, self.actions)
         self.reset = ActionTile(icons.refresh, "Reset Offset", "Set the offset to 0.000", parent=self.actions)
-        place_buttons([self.save, self.reset], QRectF(4, 26, 776, 88), 2, 0)
+        place_buttons([self.save, self.reset], QRectF(sx(4), sy(26), sx(776), sy(88)), 2, 0)
         self.save.clicked.connect(lambda: self.ctl.confirm(
             "Save Z Offset?", "Applies the current offset to the probe (Z_OFFSET_APPLY_PROBE) and saves "
             "printer.cfg. Klipper restarts.", "Save & Restart", lambda: self.ctl.run("z_offset_save")))

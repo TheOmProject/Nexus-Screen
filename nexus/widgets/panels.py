@@ -5,6 +5,7 @@ from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QLinearGradient, QPainter,
 from PyQt6.QtWidgets import QAbstractButton, QWidget
 
 from nexus import theme
+from nexus.config import sx, sy
 from nexus.widgets import icons
 from nexus.widgets.buttons import SmallButton
 from nexus.widgets.glow_widget import paint_panel, paint_red_fill, panel_path, red_glow
@@ -270,10 +271,10 @@ class ListPanel(Panel):
         bottom = h - (38 if pages else 6)
         rh = (bottom - self._top) / self._rows
         for i, t in enumerate(self.tiles):
-            t.setGeometry(2, int(self._top + i * rh), w - 4, int(rh))
+            t.setGeometry(sx(2), int(self._top + i * rh), w - sx(4), int(rh))
         half = (w - 24) / 2
-        self.prev.setGeometry(8, h - 34, int(half), 28)
-        self.next.setGeometry(int(16 + half), h - 34, int(half), 28)
+        self.prev.setGeometry(sx(8), h - sy(34), int(half), sy(28))
+        self.next.setGeometry(int(sx(16) + half), h - sy(34), int(half), sy(28))
 
     def pages(self):
         return max(1, (len(self.items) + self._rows - 1) // self._rows)

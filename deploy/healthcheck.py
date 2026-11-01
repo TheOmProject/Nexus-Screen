@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Health check for the installed Nexus Screen service (run as root by install.sh, or as omar).
+"""Health check for the installed Nexus Screen service (run as root by install.sh, or as user).
 
   deploy/healthcheck.py [--wait SECONDS] [--png PATH] [--max-restarts N] [--commands]
 
@@ -65,10 +65,29 @@ def vt_state():
     return active, graphics
 
 
+def fb_info():
+    """Return (width, height, stride, bits_per_pixel) from sysfs, or raise RuntimeError."""
+    try:
+        stride = int(open("/sys/class/graphics/fb0/stride").read().strip())
+        vsize  = open("/sys/class/graphics/fb0/virtual_size").read().strip()  # "W,H"
+        fb_w, fb_h = (int(v) for v in vsize.split(","))
+        bpp = int(open("/sys/class/graphics/fb0/bits_per_pixel").read().strip())
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(f"Cannot read framebuffer sysfs: {exc}") from exc
+    if bpp != 16:
+        raise RuntimeError(
+            f"Unsupported framebuffer format: {bpp} bits per pixel "
+            f"(expected 16-bit RGB565). Nexus Screen requires a 16-bpp framebuffer."
+        )
+    return fb_w, fb_h, stride, bpp
+
+
 def screen(png=None):
     import numpy as np
-    stride = int(open("/sys/class/graphics/fb0/stride").read())
-    raw = np.fromfile("/dev/fb0", dtype=np.uint16, count=stride // 2 * 480).reshape(480, stride // 2)[:, :800]
+    fb_w, fb_h, stride, _ = fb_info()
+    # stride may be padded beyond fb_w*2; read full rows then trim to actual width
+    row_px = stride // 2
+    raw = np.fromfile("/dev/fb0", dtype=np.uint16, count=row_px * fb_h).reshape(fb_h, row_px)[:, :fb_w]
     lum = ((raw >> 11) & 0x1F) * 8 * 0.3 + ((raw >> 5) & 0x3F) * 4 * 0.59 + (raw & 0x1F) * 8 * 0.11
     if png:
         from PIL import Image
@@ -111,12 +130,19 @@ def main():
         time.sleep(2)
     if r["owns_framebuffer"]:
         time.sleep(1)
-        mean, std = screen(args.png)
-        r["screen_mean"], r["screen_contrast"] = round(mean, 1), round(std, 1)
-        r["screen_not_black"] = mean > 8 and std > 10
+        try:
+            mean, std = screen(args.png)
+            r["screen_mean"], r["screen_contrast"] = round(mean, 1), round(std, 1)
+            r["screen_not_black"] = mean > 8 and std > 10
+        except ImportError:
+            r["screen_not_black"] = None   # numpy absent — skip luminance check
+            r["screen_warning"] = "numpy not installed; screen luminance check skipped"
+        except RuntimeError as exc:
+            r["screen_not_black"] = None
+            r["screen_warning"] = str(exc)
     else:
         r["screen_not_black"] = False
-    r["healthy"] = bool(essential and r["screen_not_black"])
+    r["healthy"] = bool(essential and r["screen_not_black"] is not False)
     print(json.dumps(r, indent=1))
     return 0 if r["healthy"] else 1
 

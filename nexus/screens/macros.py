@@ -4,6 +4,7 @@ from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QFont, QFontMetricsF
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.widgets import icons
 from nexus.widgets.buttons import SmallButton
 from nexus.widgets.overlays import MONO
@@ -41,7 +42,7 @@ class DetailsPanel(Panel):
         p.setPen(theme.DIM)
         p.drawText(QRectF(10, 92, 200, 18), Qt.AlignmentFlag.AlignVCenter, "Commands")
         f = QFont(MONO)
-        f.setPixelSize(11)
+        f.setPixelSize(smin(11))
         p.setFont(f)
         p.setPen(theme.FG_SOFT)
         lines = info["gcode"].splitlines()[:12]
@@ -58,16 +59,16 @@ class MacrosScreen(SubScreen):
         self.ctl = ctl
         self.filter = ""
         self.list = ListPanel("Macro List", macro_row, rows=7, parent=self, top=34, empty_text="No macros found")
-        self.list.setGeometry(8, 58, 486, 378)
+        self.list.setGeometry(sx(8), sy(58), sx(486), sy(378))
         self.list.key = lambda item: item[0]
         self.list.chosen.connect(lambda item: self._select(item))
         self.search = SmallButton("Search macros…", parent=self.list, font_px=theme.BUTTON, checkable=False)
-        self.search.setGeometry(240, 4, 238, 26)
+        self.search.setGeometry(sx(240), sy(4), sx(238), sy(26))
         self.search.clicked.connect(lambda: self.ctl.keyboard("Search macros", self.filter, self._set_filter))
         self.details = DetailsPanel(self)
-        self.details.setGeometry(502, 58, 290, 378)
+        self.details.setGeometry(sx(502), sy(58), sx(290), sy(378))
         self.run = ActionTile(icons.play, "Run Macro", primary=True, parent=self.details)
-        self.run.setGeometry(4, 304, 282, 70)
+        self.run.setGeometry(sx(4), sy(304), sx(282), sy(70))
         self.run.clicked.connect(self._run)
         self._data = {}
 

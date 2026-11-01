@@ -4,6 +4,7 @@ from PyQt6.QtCore import QObject, QRectF, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.moonraker.commands import extrude_moves, move_seconds
 from nexus.screens.addon_common import Debounce, Stepper
 from nexus.widgets.glow_widget import paint_panel
@@ -120,15 +121,15 @@ class NozzlePanel(Panel):
 
     def paint_body(self, p):
         w = self.width()
-        box = QRectF(8, 30, w - 16, self.height() - 88)
+        box = QRectF(sx(8), sy(30), w - sx(16), self.height() - sy(88))
         paint_panel(p, box, 6, top=QColor(8, 9, 11), bottom=QColor(16, 18, 21), border=QColor(52, 56, 62))
-        p.setFont(theme.font(32, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(32), QFont.Weight.Bold))
         p.setPen(theme.FG)
-        p.drawText(box.adjusted(0, -12, 0, -12), Qt.AlignmentFlag.AlignCenter,
+        p.drawText(box.adjusted(0, -sy(12), 0, -sy(12)), Qt.AlignmentFlag.AlignCenter,
                    "--" if self.current is None else f"{self.current:.0f}°C")
         p.setFont(theme.font(theme.BODY, QFont.Weight.Medium))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(box.x(), box.center().y() + 14, box.width(), 18), Qt.AlignmentFlag.AlignCenter,
+        p.drawText(QRectF(box.x(), box.center().y() + sy(14), box.width(), sy(18)), Qt.AlignmentFlag.AlignCenter,
                    "Target: Off" if not self.target else f"Target: {self.target:.0f}°C")
 
 

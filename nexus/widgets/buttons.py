@@ -4,9 +4,10 @@ from PyQt6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen
 from PyQt6.QtWidgets import QAbstractButton, QWidget
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.widgets.glow_widget import paint_panel, panel_path, red_glow
 
-GLOW = 7
+GLOW = smin(7)
 
 
 class ActionButton(QAbstractButton):
@@ -52,7 +53,7 @@ class ActionButton(QAbstractButton):
         p.setBrush(Qt.BrushStyle.NoBrush)
         p.drawRoundedRect(r.adjusted(0.8, 0.8, -0.8, -0.8), 6, 6)
 
-        f = theme.font(19, QFont.Weight.DemiBold)
+        f = theme.font(smin(19), QFont.Weight.DemiBold)
         p.setFont(f)
         iw, ih = self._icon_size
         tw = p.fontMetrics().horizontalAdvance(self._label)
@@ -109,7 +110,8 @@ class BackButton(QAbstractButton):
 
     The visible key (VISIBLE_W x VISIBLE_H) sits in the top bar; the widget is larger so the finger
     target reaches past it over non-interactive areas (status box edge, screen title)."""
-    VISIBLE_W, VISIBLE_H = 120, 34
+    VISIBLE_W = sx(120)
+    VISIBLE_H = sy(34)
 
     def paintEvent(self, _):
         p = QPainter(self)
@@ -119,7 +121,7 @@ class BackButton(QAbstractButton):
                     bottom=QColor(11, 12, 15))
         from nexus.widgets import icons
         icons.back_arrow(p, QRectF(16, r.center().y() - 10, 10, 20), QColor(theme.FG_SOFT), 2.6)
-        p.setFont(theme.font(22, QFont.Weight.DemiBold))
+        p.setFont(theme.font(smin(22), QFont.Weight.DemiBold))
         p.setPen(theme.FG_SOFT)
         p.drawText(QRectF(38, 0, r.width() - 40, r.height()), Qt.AlignmentFlag.AlignVCenter, "Back")
         p.end()
@@ -131,7 +133,7 @@ class EmergencyStopButton(QWidget):
 
     The widget is the full bar height (the finger target); the painted key is centred in it."""
     HOLD_MS = 500
-    KEY_H = 28
+    KEY_H = sy(28)
     triggered = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -185,7 +187,7 @@ class EmergencyStopButton(QWidget):
             p.setClipPath(panel_path(r, 5))
             p.fillRect(QRectF(r.left(), r.top(), r.width() * self.progress, r.height()), QColor(255, 70, 58))
             p.restore()
-        p.setFont(theme.font(15, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(15), QFont.Weight.Bold))
         p.setPen(QColor(255, 255, 255))
         p.drawText(r, Qt.AlignmentFlag.AlignCenter, "STOPPING" if self.progress >= 1.0 else "EMERGENCY STOP")
         p.end()

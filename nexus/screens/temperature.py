@@ -6,6 +6,7 @@ from PyQt6.QtGui import QColor, QFont, QPainter
 from PyQt6.QtWidgets import QWidget
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.screens.addon_common import Debounce, Stepper, enable, grid, paint_bar, place_buttons
 from nexus.widgets import icons
 from nexus.widgets.glow_widget import paint_panel
@@ -82,7 +83,7 @@ class HeaterCard(QWidget):
         p.setFont(theme.font(theme.CAPTION, QFont.Weight.Medium))
         p.setPen(theme.DIM)
         p.drawText(QRectF(0, 36, w, 14), Qt.AlignmentFlag.AlignCenter, "Current")
-        p.setFont(theme.font(32, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(32), QFont.Weight.Bold))
         p.setPen(theme.FG)
         p.drawText(QRectF(0, 48, w, 38), Qt.AlignmentFlag.AlignCenter, _fmt(self.current))
         p.setFont(theme.font(theme.LABEL, QFont.Weight.Medium))
@@ -135,25 +136,25 @@ class TemperatureScreen(SubScreen):
         self.ctl = ctl
         self.cards = {key: HeaterCard(ctl, key, label, icon, colour, self) for key, label, icon, colour in HEATERS}
         self.presets = Panel("Presets", self)
-        self.presets.setGeometry(8, 224, 388, 100)
+        self.presets.setGeometry(sx(8), sy(224), sx(388), sy(100))
         self.preset_tiles = []
         for name, nozzle, bed in PRESETS:
             t = Tile(self._preset_painter(name, nozzle, bed), self.presets)
             t.setCheckable(False)
             t.clicked.connect(lambda _=False, n=nozzle, b=bed: self.ctl.run("preheat", nozzle=float(n), bed=float(b)))
             self.preset_tiles.append(t)
-        place_buttons(self.preset_tiles, QRectF(4, 24, 380, 72), 4, 0)
+        place_buttons(self.preset_tiles, QRectF(sx(4), sy(24), sx(380), sy(72)), 4, 0)
         self.control = Panel("Temperature Control", self)
-        self.control.setGeometry(8, 332, 388, 104)
+        self.control.setGeometry(sx(8), sy(332), sx(388), sy(104))
         self.pid = ActionTile(icons.thermometer, "Run PID Tune", parent=self.control, stacked=True)
         self.save = ActionTile(icons.save, "Save to Config", parent=self.control, stacked=True)
         self.cool = ActionTile(icons.snowflake, "Cooldown", parent=self.control, stacked=True)
-        place_buttons([self.pid, self.save, self.cool], QRectF(4, 24, 380, 76), 3, 0)
+        place_buttons([self.pid, self.save, self.cool], QRectF(sx(4), sy(24), sx(380), sy(76)), 3, 0)
         self.pid.clicked.connect(self.ctl.start_pid_tune)
         self.save.clicked.connect(self.ctl.confirm_save_config)
         self.cool.clicked.connect(lambda: self.ctl.run("heaters_off"))
         self.status = StatusPanel(self)
-        self.status.setGeometry(404, 224, 388, 212)
+        self.status.setGeometry(sx(404), sy(224), sx(388), sy(212))
         self._data = {}
 
     @staticmethod
@@ -173,7 +174,7 @@ class TemperatureScreen(SubScreen):
         n = max(1, len(heaters))
         for key, card in self.cards.items():
             card.setVisible(any(h[0] == key for h in heaters))
-        for (key, *_), r in zip(heaters, grid(QRectF(8, 58, 784, 158), n, n, 8)):
+        for (key, *_), r in zip(heaters, grid(QRectF(sx(8), sy(58), sx(784), sy(158)), n, n, sx(8))):
             self.cards[key].setGeometry(r.toRect())
             self.cards[key].set_data(data)
         nozzle_t = ((data.get("heaters") or {}).get("extruder") or (0, 0))[1]

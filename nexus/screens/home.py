@@ -11,6 +11,7 @@ from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QLinearGradient, QPainter,
 from PyQt6.QtWidgets import QAbstractButton, QWidget
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.widgets import icons
 from nexus.widgets.glow_widget import paint_panel, paint_red_fill, panel_path, red_glow
 from nexus.widgets.text import degree_width, draw_degrees
@@ -36,12 +37,12 @@ def load_pixmap(path):
         px = _pixmaps[path] = QPixmap(path)
     return px
 
-MARGIN = 8           # gap below the top bar / right of the sidebar
-RIGHT_MARGIN = 10
-HERO_W = 364
-CARD_GAP = 8
-HEADER_H = 30
-BOTTOM_STRIP_H = 54  # Return to Print card height
+MARGIN = smin(8)         # gap below the top bar / right of the sidebar
+RIGHT_MARGIN = sx(10)
+HERO_W = sx(364)
+CARD_GAP = smin(8)
+HEADER_H = sy(30)
+BOTTOM_STRIP_H = sy(54)  # Return to Print card height
 
 
 def _header(p, w, title):
@@ -267,7 +268,7 @@ class StatusCard(QWidget):
         }.get(kind, (icons.check_ring, theme.GREEN))
         cy = HEADER_H + (h - HEADER_H) / 2
         icon(p, QRectF(20, cy - 20, 40, 40), QColor(colour))
-        p.setFont(theme.font(21, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(21), QFont.Weight.Bold))
         p.setPen(theme.FG)
         p.drawText(QRectF(74, cy - 22, w - 90, 24), Qt.AlignmentFlag.AlignVCenter, title)
         f = theme.font(theme.BODY, QFont.Weight.Medium)
@@ -422,7 +423,7 @@ class ReturnToPrintCard(QAbstractButton):
         paused = state == "paused"
         accent = QColor(theme.AMBER) if paused else QColor(255, 44, 34)
         (icons.pause_ring if paused else icons.play_ring)(p, QRectF(14, h / 2 - 15, 30, 30), accent)
-        p.setFont(theme.font(18, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(18), QFont.Weight.Bold))
         p.setPen(theme.FG)
         p.drawText(QRectF(56, 7, 200, 22), Qt.AlignmentFlag.AlignVCenter, "Return to Print")
         f = theme.font(theme.CAPTION, QFont.Weight.Medium)
@@ -442,7 +443,7 @@ class ReturnToPrintCard(QAbstractButton):
         g.setColorAt(1, accent)
         p.setBrush(g)
         p.drawRoundedRect(fill, 3, 3)
-        p.setFont(theme.font(20, QFont.Weight.Bold))
+        p.setFont(theme.font(smin(20), QFont.Weight.Bold))
         p.setPen(theme.FG)
         p.drawText(QRectF(w - 142, 6, 60, 24), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight, f"{pct}%")
         p.setFont(theme.font(theme.CAPTION, QFont.Weight.Medium))

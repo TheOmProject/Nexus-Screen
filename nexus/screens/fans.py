@@ -5,6 +5,7 @@ from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QColor, QFont, QPainter
 
 from nexus import theme
+from nexus.config import sx, sy, smin
 from nexus.screens.addon_common import Debounce, Stepper, grid, place_buttons
 from nexus.widgets import icons
 from nexus.widgets.buttons import SmallButton
@@ -77,17 +78,17 @@ class FanCard(Panel):
             p.setPen(theme.DIM)
             p.drawText(QRectF(12, 28, w - 24, 16), Qt.AlignmentFlag.AlignVCenter, f["sub"])
             speed = self.pending if self.pending is not None else f["speed"]
-            p.setFont(theme.font(26, QFont.Weight.Bold))
+            p.setFont(theme.font(smin(26), QFont.Weight.Bold))
             p.setPen(theme.FG)
-            p.drawText(QRectF(0, 186, w, 30), Qt.AlignmentFlag.AlignCenter, f"{round(speed * 100)}%")
+            p.drawText(QRectF(0, sy(186), w, sy(30)), Qt.AlignmentFlag.AlignCenter, f"{round(speed * 100)}%")
             p.setFont(theme.font(theme.CAPTION, QFont.Weight.Medium))
             p.setPen(theme.DIM)
             auto = f["kind"] == "auto"
-            p.drawText(QRectF(0, 214, w, 16), Qt.AlignmentFlag.AlignCenter, "Automatic" if auto else "Target: 0-100%")
+            p.drawText(QRectF(0, sy(214), w, sy(16)), Qt.AlignmentFlag.AlignCenter, "Automatic" if auto else "Target: 0-100%")
             if auto:
                 p.setFont(theme.font(theme.BODY, QFont.Weight.DemiBold))
                 p.setPen(theme.FG_SOFT)
-                p.drawText(QRectF(10, h - 48, w - 20, 36), Qt.AlignmentFlag.AlignCenter, "Controlled by Klipper")
+                p.drawText(QRectF(sx(10), h - sy(48), w - sx(20), sy(36)), Qt.AlignmentFlag.AlignCenter, "Controlled by Klipper")
         p.end()
 
 
@@ -101,17 +102,17 @@ class FansScreen(SubScreen):
         self.cards = [FanCard(ctl, self) for _ in range(PER_PAGE)]
         self.prev = SmallButton(icon=icons.back_arrow, parent=self, checkable=False)
         self.next = SmallButton(icon=icons.chevron, parent=self, checkable=False)
-        self.prev.setGeometry(700, 14, 40, 30)
-        self.next.setGeometry(748, 14, 40, 30)
+        self.prev.setGeometry(sx(700), sy(14), sx(40), sy(30))
+        self.next.setGeometry(sx(748), sy(14), sx(40), sy(30))
         self.prev.clicked.connect(lambda: self._page(-1))
         self.next.clicked.connect(lambda: self._page(1))
         self.page = 0
         self.extra = Panel("Additional Controls", self)
-        self.extra.setGeometry(8, 354, 784, 82)
+        self.extra.setGeometry(sx(8), sy(354), sx(784), sy(82))
         self.all_off = ActionTile(icons.snowflake, "All Fans Off", "Adjustable fans to 0%", parent=self.extra)
         self.all_half = ActionTile(icons.fan, "All Fans 50%", "Adjustable fans to 50%", parent=self.extra)
         self.all_full = ActionTile(icons.fan, "All Fans 100%", "Adjustable fans to 100%", parent=self.extra)
-        place_buttons([self.all_off, self.all_half, self.all_full], QRectF(4, 22, 776, 56), 3, 0)
+        place_buttons([self.all_off, self.all_half, self.all_full], QRectF(sx(4), sy(22), sx(776), sy(56)), 3, 0)
         for btn, speed in ((self.all_off, 0.0), (self.all_half, 0.5), (self.all_full, 1.0)):
             btn.clicked.connect(lambda _=False, s=speed: self._set_all(s))
         self._data = {}
@@ -134,7 +135,7 @@ class FansScreen(SubScreen):
             b.setVisible(pages > 1)
         self.prev.setEnabled(self.page > 0)
         self.next.setEnabled(self.page < pages - 1)
-        cells = grid(QRectF(8, 58, 784, 288), PER_PAGE, PER_PAGE, 8)
+        cells = grid(QRectF(sx(8), sy(58), sx(784), sy(288)), PER_PAGE, PER_PAGE, sx(8))
         for i, card in enumerate(self.cards):
             if i < len(shown):
                 card.setGeometry(cells[i].toRect())
