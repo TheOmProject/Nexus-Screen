@@ -14,7 +14,16 @@ This is the first public release. See [Beta Limitations](#beta-limitations) befo
 
 ## Screenshots
 
-_Screenshots coming — see the [release gallery](https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.1.0-beta.1)._
+| | |
+|:---:|:---:|
+| ![Home screen — ready state with temperatures and add-ons](docs/images/home.png) | ![Print Status — active print with thumbnail and progress](docs/images/print-status.png) |
+| *Home — temperatures, printer status, and active add-ons* | *Print Status — live thumbnail, progress bar, and print controls* |
+| ![Print paused — Baby Step Z offset controls](docs/images/print-paused.png) | ![Print Files — file browser with thumbnails](docs/images/print-files.png) |
+| *Print paused — Baby Step Z offset adjustment* | *Print Files — file browser with gcode thumbnails* |
+| ![Control section hub](docs/images/control.png) | ![Temperature — live heater tiles](docs/images/temperature.png) |
+| *Control — motion, temperature, fans, lighting, and calibration* | *Temperature — live heater tiles with numeric keypad* |
+| ![Filament management](docs/images/filament.png) | ![Settings section overview](docs/images/settings.png) |
+| *Filament — load, profiles, BoxTurtle, and StealthChanger* | *Settings — configuration and tools overview* |
 
 ---
 
