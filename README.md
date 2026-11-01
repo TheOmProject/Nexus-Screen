@@ -55,10 +55,25 @@ See [Beta Limitations](#beta-limitations) before installing.
 | Touch input | Capacitive touch via `/dev/input/eventN` |
 | Firmware | Klipper + Moonraker on the same host (`localhost:7125`) |
 
-**Note — 800×480 is the recommended reference resolution.** Nexus Screen scales to
-fit other resolutions automatically, but smaller panels (480×320 and below) may show
-truncated labels and reduced readability on some screens. All primary controls remain
-accessible at 480×320. The framebuffer must be 16-bit RGB565 (`bits_per_pixel = 16`).
+### Display Resolution Recommendation
+
+**Nexus Screen was originally designed and optimized for 800×480 displays.**
+
+The interface supports adaptive scaling for different screen resolutions. However,
+displays smaller than 800×480 may have reduced text readability, tighter layouts,
+and less visual detail.
+
+Smaller displays, including 480×320, are supported and usable, but the overall
+experience may not be as polished as on the recommended 800×480 resolution.
+
+**For the best visual experience, an 800×480 display or larger is recommended.**
+
+**Framebuffer requirement:** the display must expose a 16-bit RGB565 framebuffer
+(`bits_per_pixel = 16`) at `/dev/fb0`. Verify with:
+
+```bash
+cat /sys/class/graphics/fb0/bits_per_pixel
+```
 
 **All other hardware is untested.** This includes Raspberry Pi 3, Pi 5, Pi Zero 2 W,
 HDMI displays, SPI displays, and 32-bit OS images.
@@ -173,7 +188,7 @@ journalctl -u nexus-screen -b
 
 ## Beta Limitations
 
-This is a **public beta**. The following are known limitations in v0.2.0-beta.1:
+This is a **public beta**. The following are known limitations in v0.2.0-beta.2:
 
 - **Tested on two hardware configurations** — see [Supported Hardware](#supported-hardware)
 - **Adaptive scaling is best-effort on small displays** — 800×480 is the reference resolution; smaller panels (480×320 and below) may show truncated labels on some screens; all primary controls remain accessible
