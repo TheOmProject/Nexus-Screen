@@ -2,8 +2,13 @@
 
 This guide covers a fresh installation of Nexus Screen on a compatible Raspberry Pi.
 
-**Tested configuration:** Raspberry Pi 4 (2 GB), 64-bit Raspberry Pi OS (Bookworm, aarch64),
-800×480 DSI touchscreen, Klipper + Moonraker (MainsailOS or FluiddOS).
+**Tested configurations:** Raspberry Pi 4 (2 GB) with 800×480 DSI touchscreen;
+BigTreeTech CB1 with 480×320 DSI touchscreen. OS: 64-bit Raspberry Pi OS (Bookworm, aarch64),
+Klipper + Moonraker (MainsailOS or FluiddOS).
+
+**Display requirement:** the framebuffer must be 16-bit RGB565 (`/sys/class/graphics/fb0/bits_per_pixel = 16`).
+The installer rejects other depths. Nexus Screen auto-detects the resolution and scales to fit;
+800×480 is the reference resolution.
 
 ---
 
@@ -23,9 +28,11 @@ Before you begin:
    ```
    Should print `ready`.
 
-3. **A framebuffer display at `/dev/fb0`:**
+3. **A 16-bit RGB565 framebuffer display at `/dev/fb0`:**
    ```bash
    ls /dev/fb0
+   cat /sys/class/graphics/fb0/bits_per_pixel   # must print 16
+   cat /sys/class/graphics/fb0/virtual_size      # prints W,H — detected automatically
    ```
 
 4. **64-bit Raspberry Pi OS (aarch64):**
@@ -35,19 +42,24 @@ Before you begin:
 
 ---
 
-## Step 1 — Install PyQt6
+## Step 1 — Install Dependencies
 
-PyQt6 is available from the Raspberry Pi OS package repository:
+PyQt6 and NumPy are available from the Raspberry Pi OS package repository:
 
 ```bash
 sudo apt update
-sudo apt install python3-pyqt6
+sudo apt install python3-pyqt6 python3-numpy
 ```
 
 Verify:
 ```bash
 python3 -c "import PyQt6.QtWidgets; print('PyQt6 OK')"
+python3 -c "import numpy; print('NumPy OK')"
 ```
+
+NumPy is required for `deploy/healthcheck.py` to read and validate the framebuffer
+after installation. The app itself runs without NumPy, but the installer will warn
+and the health check will skip the screen-content check if it is absent.
 
 ---
 

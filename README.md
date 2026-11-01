@@ -7,8 +7,8 @@ Nexus Screen is an independent, touch-optimized UI for printers running
 It runs directly on the framebuffer (no desktop environment required) and is
 designed for embedded 800×480 DSI touchscreen panels on Raspberry Pi.
 
-**Status: Public Beta — v0.1.0-beta.1**  
-This is the first public release. See [Beta Limitations](#beta-limitations) before installing.
+**Status: Public Beta — v0.2.0-beta.1**  
+See [Beta Limitations](#beta-limitations) before installing.
 
 ---
 
@@ -29,6 +29,7 @@ This is the first public release. See [Beta Limitations](#beta-limitations) befo
 
 ## Features
 
+- **Adaptive display scaling** — auto-detects framebuffer resolution at startup; scales all layouts, fonts, and touch targets to fit; identity at 800×480
 - **5 main sections** — Home, Print, Filament, Control, Settings
 - **34 screens** reachable from a persistent sidebar
 - **Print management** — full-screen print status, progress, thumbnail preview, Pause/Resume/Stop, Baby Step Z offset
@@ -47,13 +48,20 @@ This is the first public release. See [Beta Limitations](#beta-limitations) befo
 | Component | Tested configuration |
 |---|---|
 | Single-board computer | Raspberry Pi 4 (2 GB RAM) |
+| Single-board computer | BigTreeTech CB1 (see note below) |
 | Operating system | 64-bit Raspberry Pi OS (Debian Bookworm, aarch64) |
-| Display | 800×480 DSI touchscreen, `/dev/fb0` framebuffer |
+| Display | 800×480 DSI touchscreen, `/dev/fb0` framebuffer (recommended) |
+| Display | 480×320 DSI touchscreen (CB1 / smaller panels — see note below) |
 | Touch input | Capacitive touch via `/dev/input/eventN` |
 | Firmware | Klipper + Moonraker on the same host (`localhost:7125`) |
 
+**Note — 800×480 is the recommended reference resolution.** Nexus Screen scales to
+fit other resolutions automatically, but smaller panels (480×320 and below) may show
+truncated labels and reduced readability on some screens. All primary controls remain
+accessible at 480×320. The framebuffer must be 16-bit RGB565 (`bits_per_pixel = 16`).
+
 **All other hardware is untested.** This includes Raspberry Pi 3, Pi 5, Pi Zero 2 W,
-HDMI displays, SPI displays, different resolutions, and 32-bit OS images.
+HDMI displays, SPI displays, and 32-bit OS images.
 Community reports of working or failing configurations are welcome via
 [GitHub Issues](https://github.com/omarmunoz5371/Nexus-Screen/issues).
 
@@ -61,14 +69,19 @@ Community reports of working or failing configurations are welcome via
 
 ## Requirements
 
-- Raspberry Pi 4, 64-bit Raspberry Pi OS (Bookworm)
+- Raspberry Pi 4 or BigTreeTech CB1, 64-bit OS (Bookworm)
 - Klipper and Moonraker installed and running
 - Python 3.11 or later
 - PyQt6 ≥ 6.4 — installed via `apt`:
   ```bash
   sudo apt install python3-pyqt6
   ```
-- A framebuffer display at `/dev/fb0`
+- NumPy — required for the health-check framebuffer read:
+  ```bash
+  sudo apt install python3-numpy
+  # or: ~/nexus-screen-env/bin/pip install numpy
+  ```
+- A 16-bit RGB565 framebuffer display at `/dev/fb0`
 
 ---
 
@@ -160,10 +173,10 @@ journalctl -u nexus-screen -b
 
 ## Beta Limitations
 
-This is a **public beta**. The following are known limitations in v0.1.0-beta.1:
+This is a **public beta**. The following are known limitations in v0.2.0-beta.1:
 
-- **Tested on one hardware configuration only** — see [Supported Hardware](#supported-hardware)
-- **Fixed 800×480 layout** — other resolutions are not supported
+- **Tested on two hardware configurations** — see [Supported Hardware](#supported-hardware)
+- **Adaptive scaling is best-effort on small displays** — 800×480 is the reference resolution; smaller panels (480×320 and below) may show truncated labels on some screens; all primary controls remain accessible
 - **Printer commands require explicit opt-in** — enabled separately with `deploy/commands.sh enable`
 - **Boot splash requires separate media build** — see `docs/SPLASH.md`; the splash media is not
   distributed in the repository and must be built from the source assets

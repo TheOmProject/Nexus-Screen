@@ -7,6 +7,40 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.2.0-beta.1] — 2026-11-01
+
+### Adaptive Display / Stretch to Fit
+
+Nexus Screen now auto-detects the display resolution at startup and scales the
+entire interface to fit. The 800×480 design is the reference: the layout is
+pixel-identical on an 800×480 panel. On smaller or larger displays the interface
+stretches proportionally while preserving circular shapes (jog wheel, status dots)
+and minimum font sizes.
+
+- **Automatic resolution detection** — reads `/sys/class/graphics/fb0/virtual_size`
+  at startup; falls back to 800×480 if the sysfs entry is unavailable
+- **Override via environment variables** — `NEXUS_SCREEN_W` and `NEXUS_SCREEN_H`
+  override the detected resolution (the installer injects these for non-standard panels)
+- **Coordinate helpers** — `sx(v)` (width), `sy(v)` (height), `smin(v)`
+  (aspect-preserving, used for circles and fonts) applied across all 27 screens and
+  all widget files
+- **Installer support** — `deploy/install.sh` detects the framebuffer resolution; for
+  non-800×480 panels it injects `NEXUS_SCREEN_W` / `NEXUS_SCREEN_H` into the systemd
+  unit so the service always starts at the correct size
+- **Healthcheck improvement** — `deploy/healthcheck.py` now reads the actual
+  framebuffer stride (`/sys/class/graphics/fb0/stride`) for correct pixel reads on
+  panels with row padding; rejects non-16-bpp framebuffers early
+- **NumPy dependency** — `numpy` is now required for the health-check framebuffer read
+- **Validated resolutions** — 800×480 (identity), 480×320, 1024×600, 1920×1080;
+  zero crashes at all four resolutions
+
+> **Note:** 800×480 is the recommended reference resolution. Smaller displays
+> (480×320 and below) may show truncated labels and reduced readability on some
+> screens. All primary interactive controls — Emergency Stop, Pause/Resume/Stop,
+> jog wheel, temperature keypad, Z Offset, Bed Mesh — remain accessible at 480×320.
+
+---
+
 ## [v0.1.0-beta.1] — 2026-11-01
 
 First public beta release. The complete interface was developed and tested on a
@@ -66,4 +100,5 @@ Raspberry Pi 4 with a 7-inch 800×480 DSI touchscreen running Klipper and Moonra
 
 ---
 
+[v0.2.0-beta.1]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.1
 [v0.1.0-beta.1]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.1.0-beta.1
