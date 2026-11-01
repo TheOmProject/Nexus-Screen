@@ -1,0 +1,5 @@
+# Template — generated at runtime by deploy/commands.sh enable
+# Actual paths are substituted by the script using the detected user and repo location.
+[Service]
+ExecStart=
+ExecStart=@PY@ @REPO@/main.py --hardware-display --live --allow-commands

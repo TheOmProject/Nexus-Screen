@@ -1,0 +1,47 @@
+name: Feature Request
+description: Suggest a new feature or improvement for Nexus Screen
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the suggestion. Please describe what you want and why it would be useful.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the problem or limitation you are running into.
+      placeholder: "There is no way to quickly adjust the fan speed from the Home screen."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe what you would like Nexus Screen to do differently.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered any other approaches?
+
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware context
+      description: Relevant hardware details (printer type, add-ons, display).
+      placeholder: |
+        - Printer: Voron 2.4 (CoreXY)
+        - Add-ons: StealthChanger toolchanger
+        - Display: 7-inch 800×480 DSI
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Screenshots, sketches, or any other context.

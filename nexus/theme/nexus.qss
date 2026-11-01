@@ -1,0 +1,15 @@
+/* Nexus Screen — base sheet. Bespoke surfaces are painted with QPainter;
+   QSS only sets defaults so stray widgets never fall back to the platform look. */
+* {
+    font-family: "Rajdhani";
+    color: #f1f3f5;
+    outline: none;
+}
+QMainWindow, #root {
+    background: #07080a;
+}
+QToolTip {
+    background: #16191d;
+    border: 1px solid #262a30;
+    color: #f1f3f5;
+}

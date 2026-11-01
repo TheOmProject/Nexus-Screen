@@ -1,0 +1,25 @@
+__pycache__/
+*.pyc
+*.pyo
+
+# Runtime state (PID files, lock files)
+run/
+
+# Logs and bug reports
+logs/
+*.tar.gz
+
+# Local configuration and secrets
+.env
+*.local
+
+# Build outputs and generated media
+nexus-splash/
+
+# Backup directories (created by deploy scripts)
+nexus-screen-backups/
+
+# Editor and OS artifacts
+.DS_Store
+*.swp
+*.swo

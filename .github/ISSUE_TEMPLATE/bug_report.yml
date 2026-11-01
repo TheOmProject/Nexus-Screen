@@ -1,0 +1,71 @@
+name: Bug Report
+description: Report a problem with Nexus Screen
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. The more detail you provide, the faster it can be investigated.
+
+        **Please run the bug report tool on your Pi before submitting:**
+        ```bash
+        ~/nexus-screen/scripts/bug-report.sh "brief description of the problem"
+        ```
+        Attach the resulting `logs/bug-*.tar.gz` file to this issue.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the problem.
+      placeholder: "When I tap the temperature tile, the app crashes."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Step-by-step instructions to reproduce the problem.
+      placeholder: |
+        1. Open Nexus Screen on the touchscreen
+        2. Tap the temperature tile on the Home screen
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware
+      description: Your hardware configuration.
+      placeholder: |
+        - Raspberry Pi model: Pi 4 2GB
+        - Operating system: Raspberry Pi OS Bookworm 64-bit
+        - Display: 7-inch 800×480 DSI touchscreen
+        - Klipper version: v0.12.0
+        - Moonraker version: v0.9.0
+        - Nexus Screen version: v0.1.0-beta.1
+    validations:
+      required: true
+
+  - type: textarea
+    id: journal
+    attributes:
+      label: Service journal (if available)
+      description: Output of `journalctl -u nexus-screen -b --no-pager -n 50`
+      render: shell
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else that might be relevant.
