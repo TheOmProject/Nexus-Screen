@@ -10,7 +10,7 @@ from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QPainter
 from PyQt6.QtWidgets import QWidget
 
 from nexus import theme
-from nexus.config import sx, sy, smin, SCREEN_W, SCREEN_H
+from nexus.config import sx, sy, smin, cx, SCREEN_W, SCREEN_H
 from nexus.display import TIMEOUTS
 from nexus.screens.addon_common import Stepper, paint_bar, place_buttons
 from nexus.widgets import icons
@@ -42,8 +42,8 @@ class SettingsPage(QWidget):
             t = ActionTile(icon, title, sub, parent=self)
             t.clicked.connect(lambda _=False, k=key: self.open_screen.emit(k))
             self.tiles[key] = t
-        place_buttons([self.tiles[k] for k, *_ in SETTINGS], QRectF(8, 82, 704, 180), 4, 0)
-        place_buttons([self.tiles[k] for k, *_ in SUPPORT], QRectF(8, 300, 528, 90), 3, 0)
+        place_buttons([self.tiles[k] for k, *_ in SETTINGS], QRectF(cx(8), sy(82), cx(704), sy(180)), 4, 0)
+        place_buttons([self.tiles[k] for k, *_ in SUPPORT], QRectF(cx(8), sy(300), cx(528), sy(90)), 3, 0)
 
     def set_data(self, data):
         pass
@@ -53,13 +53,13 @@ class SettingsPage(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.setFont(theme.font(theme.TITLE, QFont.Weight.Bold))
         p.setPen(theme.FG)
-        p.drawText(QRectF(14, 6, 500, 34), Qt.AlignmentFlag.AlignVCenter, "Settings")
+        p.drawText(QRectF(sx(14), sy(6), sx(500), sy(34)), Qt.AlignmentFlag.AlignVCenter, "Settings")
         p.setFont(theme.font(theme.SUBTITLE, QFont.Weight.Medium))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(15, 37, 500, 18), Qt.AlignmentFlag.AlignVCenter, "Configure screen, printer and system settings")
+        p.drawText(QRectF(sx(15), sy(37), sx(500), sy(18)), Qt.AlignmentFlag.AlignVCenter, "Configure screen, printer and system settings")
         p.setFont(theme.font(theme.CAPS, QFont.Weight.DemiBold, 0.6))
-        for y, label in ((64, "SETTINGS"), (282, "SUPPORT")):
-            p.drawText(QRectF(15, y, 300, 18), Qt.AlignmentFlag.AlignVCenter, label)
+        for y, label in ((sy(64), "SETTINGS"), (sy(282), "SUPPORT")):
+            p.drawText(QRectF(sx(15), y, sx(300), sy(18)), Qt.AlignmentFlag.AlignVCenter, label)
         p.end()
 
 
@@ -117,16 +117,16 @@ class ScreenSettings(TabbedScreen):
         self._sync()
 
     def _paint_bright(self, p):
-        r = QRectF(16, 50, self.page_rect.width() - 32, 50)
-        icons.bulb(p, QRectF(r.x(), r.y() + 10, 24, 30), QColor(theme.FG_SOFT))
-        paint_bar(p, QRectF(r.x() + 40, r.center().y() - 5, r.width() - 120, 10), self.bright_val / 100, theme.RED)
+        r = QRectF(sx(16), sy(50), self.page_rect.width() - sx(32), sy(50))
+        icons.bulb(p, QRectF(r.x(), r.y() + sy(10), smin(24), smin(30)), QColor(theme.FG_SOFT))
+        paint_bar(p, QRectF(r.x() + sx(40), r.center().y() - sy(5), r.width() - sx(120), sy(10)), self.bright_val / 100, theme.RED)
         p.setFont(theme.font(smin(20), QFont.Weight.Bold))
         p.setPen(theme.FG)
-        p.drawText(QRectF(r.right() - 70, r.y(), 70, r.height()), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
+        p.drawText(QRectF(r.right() - sx(70), r.y(), sx(70), r.height()), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
                    f"{self.bright_val}%")
         p.setFont(theme.font(theme.BODY))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(16, 190, r.width(), 60), Qt.TextFlag.TextWordWrap,
+        p.drawText(QRectF(sx(16), sy(190), r.width(), sy(60)), Qt.TextFlag.TextWordWrap,
                    "Backlight of the touchscreen (never below 10%)." if self.ctl.display.can_set_brightness()
                    else "Brightness changes are disabled (read-only mode or no backlight control).")
 
@@ -171,10 +171,10 @@ class PrinterSettings(TabbedScreen):
         self.steppers = {}
         for i, (key, step) in enumerate((("VELOCITY", 25), ("ACCEL", 500), ("SQUARE_CORNER_VELOCITY", 1))):
             st = Stepper(page, lambda d, k=key, s=step: self._limit(k, s, d), font_px=theme.FIELD)
-            st.place(w - 260, 104 + i * 48, 250, 40, key_w=46)
+            st.place(w - sx(260), sy(104 + i * 48), sx(250), sy(40), key_w=sx(46))
             self.steppers[key] = st
         self.pa = Stepper(page, self._pa, font_px=theme.FIELD)
-        self.pa.place(w - 260, 248, 250, 40, key_w=46)
+        self.pa.place(w - sx(260), sy(248), sx(250), sy(40), key_w=sx(46))
         self.page = page
         self._data = {}
 
@@ -200,17 +200,17 @@ class PrinterSettings(TabbedScreen):
         cfg = self._data.get("config") or {}
         p.setFont(theme.font(theme.LABEL))
         p.setPen(theme.DIM)
-        rows = [(30, "Printer Name"), (62, "Kinematics"), (104, "Max Print Speed"), (152, "Max Acceleration"),
-                (200, "Square Corner Velocity"), (248, "Pressure Advance")]
+        rows = [(sy(30), "Printer Name"), (sy(62), "Kinematics"), (sy(104), "Max Print Speed"),
+                (sy(152), "Max Acceleration"), (sy(200), "Square Corner Velocity"), (sy(248), "Pressure Advance")]
         for y, label in rows:
-            p.drawText(QRectF(14, y, 220, 40 if y > 90 else 30), Qt.AlignmentFlag.AlignVCenter, label)
+            p.drawText(QRectF(sx(14), y, sx(220), sy(40) if y > sy(90) else sy(30)), Qt.AlignmentFlag.AlignVCenter, label)
         p.setFont(theme.font(theme.BUTTON, QFont.Weight.DemiBold))
         p.setPen(theme.FG)
-        p.drawText(QRectF(240, 30, 300, 30), Qt.AlignmentFlag.AlignVCenter, self.ctl.hostname or "-")
-        p.drawText(QRectF(240, 62, 300, 30), Qt.AlignmentFlag.AlignVCenter, cfg.get("kinematics") or "-")
+        p.drawText(QRectF(sx(240), sy(30), sx(300), sy(30)), Qt.AlignmentFlag.AlignVCenter, self.ctl.hostname or "-")
+        p.drawText(QRectF(sx(240), sy(62), sx(300), sy(30)), Qt.AlignmentFlag.AlignVCenter, cfg.get("kinematics") or "-")
         p.setFont(theme.font(theme.CAPTION))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(14, 300, self.page.width() - 28, 60), Qt.TextFlag.TextWordWrap,
+        p.drawText(QRectF(sx(14), sy(300), self.page.width() - sx(28), sy(60)), Qt.TextFlag.TextWordWrap,
                    "Runtime values (SET_VELOCITY_LIMIT / SET_PRESSURE_ADVANCE): they apply immediately and "
                    "reset when Klipper restarts. printer.cfg is not changed.")
 
@@ -258,17 +258,19 @@ class NetworkScreen(TabbedScreen):
     def __init__(self, ctl, parent=None):
         super().__init__(ctl, [("wifi", "Wi-Fi"), ("ethernet", "Ethernet")], parent)
         w = self.page_rect.width()
+        h = int(self.page_rect.height())
         self.wifi = QWidget()
         self.add_page("wifi", self.wifi)
         self.networks = ListPanel("Wi-Fi Networks", self._net_row, rows=6, parent=self.wifi,
                                   empty_text="No Wi-Fi networks found")
-        self.networks.setGeometry(0, 0, int(w * 0.56), 378)
+        nw = int(w * 0.56)
+        self.networks.setGeometry(0, 0, nw, h)
         self.networks.key = lambda n: n[1]
         self.scan = SmallButton("Refresh", parent=self.networks, font_px=theme.BUTTON, checkable=False)
-        self.scan.setGeometry(int(w * 0.56) - 92, 3, 84, 22)
+        self.scan.setGeometry(nw - sx(92), sy(3), sx(84), sy(22))
         self.scan.clicked.connect(self.reload)
         self.conn = RowsPanel("Connection Info", self.wifi, label_w=90)
-        self.conn.setGeometry(int(w * 0.56) + 8, 0, int(w * 0.44) - 8, 378)
+        self.conn.setGeometry(nw + sx(8), 0, int(w * 0.44) - sx(8), h)
         self.eth = RowsPanel("Ethernet", None, label_w=120)
         self.add_page("ethernet", self.eth)
         self.connected_ssid, self._dev_info = None, None

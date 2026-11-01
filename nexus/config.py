@@ -53,6 +53,14 @@ _SX: float = SCREEN_W / DESIGN_W
 _SY: float = SCREEN_H / DESIGN_H
 _SM: float = min(_SX, _SY)
 
+# Content-area scale: hub pages (non-SubScreen, fullscreen=False) are placed inside the
+# stack with width = SCREEN_W - SIDEBAR_W.  SIDEBAR_W has a floor (max(60, ...)) that
+# makes it wider than sx(80) on small displays, so sx() alone would overflow those pages.
+# cx() corrects for the actual content area rather than the raw screen width.
+_DESIGN_SIDEBAR_W: int = 80          # sidebar width in design space
+_DESIGN_CONTENT_W: int = DESIGN_W - _DESIGN_SIDEBAR_W   # 720
+_CX: float = (SCREEN_W - SIDEBAR_W) / _DESIGN_CONTENT_W
+
 # Minimum font pixel size: Rajdhani is legible down to ~10 px on a touchscreen.
 _FONT_MIN = 10
 
@@ -70,3 +78,13 @@ def sy(v: float) -> int:
 def smin(v: float) -> int:
     """Scale preserving aspect ratio (use for circles, icons, font sizes)."""
     return max(_FONT_MIN, round(v * _SM))
+
+
+def cx(v: float) -> int:
+    """Scale a design-space x-coord or width within the content area (hub pages only).
+
+    Use this instead of sx() when laying out children of a non-SubScreen hub page
+    (SettingsPage, ControlPage, FilamentPage, PrintPage) where the stack width is
+    SCREEN_W - SIDEBAR_W, not SCREEN_W.
+    """
+    return round(v * _CX)

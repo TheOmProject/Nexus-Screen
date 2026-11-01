@@ -10,7 +10,7 @@ from PyQt6.QtGui import QColor, QFont, QPainter
 from PyQt6.QtWidgets import QWidget
 
 from nexus import theme
-from nexus.config import sx, sy
+from nexus.config import sx, sy, cx
 from nexus.screens.addon_common import place_buttons
 from nexus.screens.print_status import ThumbnailView
 from nexus.widgets import icons
@@ -315,11 +315,11 @@ class PrintPage(QWidget):
         self.ctl = ctl
         self.files_tile = ActionTile(icons.print_, "Print Files", "Browse and start a print", True, self)
         self.status_tile = ActionTile(icons.play, "Return to Print", "No print running", parent=self)
-        place_buttons([self.files_tile, self.status_tile], QRectF(sx(8), sy(82), sx(704), sy(90)), 2, 0)
+        place_buttons([self.files_tile, self.status_tile], QRectF(cx(8), sy(82), cx(704), sy(90)), 2, 0)
         self.files_tile.clicked.connect(self.open_files)
         self.status_tile.clicked.connect(self.open_print)
         self.recent = ListPanel("Recent Files", FileRow.paint, rows=4, parent=self, empty_text="No print files")
-        self.recent.setGeometry(sx(8), sy(182), sx(704), sy(252))
+        self.recent.setGeometry(cx(8), sy(182), cx(704), sy(252))
         self.recent.key = lambda item: item[1]
         self.recent.chosen.connect(lambda item: self.open_file.emit(item[1]))
 
@@ -343,10 +343,10 @@ class PrintPage(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.setFont(theme.font(theme.TITLE, QFont.Weight.Bold))
         p.setPen(theme.FG)
-        p.drawText(QRectF(14, 6, 500, 34), Qt.AlignmentFlag.AlignVCenter, "Print")
+        p.drawText(QRectF(sx(14), sy(6), sx(500), sy(34)), Qt.AlignmentFlag.AlignVCenter, "Print")
         p.setFont(theme.font(theme.SUBTITLE, QFont.Weight.Medium))
         p.setPen(theme.DIM)
-        p.drawText(QRectF(15, 37, 500, 18), Qt.AlignmentFlag.AlignVCenter, "Start prints and manage files")
+        p.drawText(QRectF(sx(15), sy(37), sx(500), sy(18)), Qt.AlignmentFlag.AlignVCenter, "Start prints and manage files")
         p.setFont(theme.font(theme.CAPS, QFont.Weight.DemiBold, 0.6))
-        p.drawText(QRectF(15, 64, 300, 18), Qt.AlignmentFlag.AlignVCenter, "PRINT")
+        p.drawText(QRectF(sx(15), sy(64), sx(300), sy(18)), Qt.AlignmentFlag.AlignVCenter, "PRINT")
         p.end()

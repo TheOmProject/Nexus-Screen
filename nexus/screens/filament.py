@@ -5,7 +5,7 @@ from PyQt6.QtGui import QFont, QPainter
 from PyQt6.QtWidgets import QWidget
 
 from nexus import theme
-from nexus.config import sx, sy, smin
+from nexus.config import sx, sy, smin, cx
 from nexus.moonraker import profiles
 from nexus.screens.addon_common import Stepper, place_buttons
 from nexus.screens.extrusion import ExtruderStatus, NozzlePanel
@@ -145,7 +145,7 @@ class FilamentPage(QWidget):
             t = ActionTile(icon, title, sub, parent=self)
             t.clicked.connect(lambda _=False, k=key: self.open_screen.emit(k))
             self.tiles[key] = t
-        place_buttons(list(self.tiles.values()), QRectF(sx(8), sy(82), sx(704), sy(180)), 2, 0)
+        place_buttons(list(self.tiles.values()), QRectF(cx(8), sy(82), cx(704), sy(180)), 2, 0)
 
     def set_data(self, data):
         for key in ("boxturtle", "stealthchanger"):  # add-ons only when detected

@@ -5,7 +5,7 @@ from PyQt6.QtGui import QFont, QPainter
 from PyQt6.QtWidgets import QWidget
 
 from nexus import theme
-from nexus.config import sx, sy, smin
+from nexus.config import sx, sy, smin, cx
 from nexus.screens.addon_common import place_buttons
 from nexus.widgets import icons
 from nexus.widgets.panels import ActionTile
@@ -37,8 +37,8 @@ class ControlPage(QWidget):
             t.clicked.connect(lambda _=False, k=key: self.open_screen.emit(k))
             t.setEnabled(key in available)
             self.tiles[key] = t
-        place_buttons([self.tiles[k] for k, *_ in CONTROL], QRectF(sx(8), sy(82), sx(704), sy(180)), 4, 0)
-        place_buttons([self.tiles[k] for k, *_ in CALIBRATION], QRectF(sx(8), sy(300), sx(704), sy(90)), 4, 0)  # same tile size as before
+        place_buttons([self.tiles[k] for k, *_ in CONTROL], QRectF(cx(8), sy(82), cx(704), sy(180)), 4, 0)
+        place_buttons([self.tiles[k] for k, *_ in CALIBRATION], QRectF(cx(8), sy(300), cx(704), sy(90)), 4, 0)
 
     def paintEvent(self, _):
         p = QPainter(self)
