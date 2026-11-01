@@ -7,7 +7,7 @@ Nexus Screen is an independent, touch-optimized UI for printers running
 It runs directly on the framebuffer (no desktop environment required) and is
 designed for embedded 800×480 DSI touchscreen panels on Raspberry Pi.
 
-**Status: Public Beta — v0.2.0-beta.1**  
+**Status: Public Beta — v0.2.0-beta.2**  
 See [Beta Limitations](#beta-limitations) before installing.
 
 ---

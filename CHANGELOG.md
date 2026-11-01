@@ -7,6 +7,48 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.2.0-beta.2] — 2026-11-01
+
+### Button Boundary Fix — All Interactive Controls Stay On-Screen at 480×320
+
+Physical CB1 testing after v0.2.0-beta.1 revealed that buttons in the Settings,
+Control, Filament, and Print hub pages extended 7 px beyond the right edge of the
+screen at 480×320, making the rightmost column of tiles unreachable by touch.
+
+**Root cause:** the four hub pages (non-SubScreen pages that share the screen with
+the sidebar) used `sx()` to scale their tile-grid widths. `sx()` maps against the
+full screen width, but the sidebar has a minimum size floor (`max(60, …)`) that makes
+it wider than `sx(80)` on small displays. At 480×320 the sidebar is 60 px rather than
+the proportional 48 px, leaving only 420 px for content — but `sx(704)` produced
+422 px, so the 4th tile column and the Recent Files list rows overflowed by 7 px.
+
+**Fix — `cx()` scale helper (`nexus/config.py`):**
+A new `cx(v)` function maps design-space values to the actual content-area width
+`SCREEN_W − SIDEBAR_W`, correcting for the sidebar floor at any display size. The
+four hub pages now use `cx()` for all x-coordinates and widths within their layouts.
+`sx()` is unchanged and continues to be used everywhere else.
+
+**Additional fixes (missed by Phase C):**
+The coordinate audit also caught unscaled literal values in `paintEvent` methods of
+`SettingsPage` and `PrintPage`, and confirmed the Phase C fixes to `ScreenSettings`,
+`PrinterSettings`, and `NetworkScreen` are correctly applied.
+
+**Regression tests (`tests/test_button_bounds.py`):**
+A new automated test navigates to 13 screens and verifies that every visible
+`QAbstractButton` has its window-coordinate rect fully inside the window at all four
+reference resolutions. Replaces manual visual inspection for button boundary checks.
+
+| Resolution | Result |
+|---|---|
+| 480×320 — CB1 minimum | ✓ PASS — 0 violations |
+| 800×480 — reference / design | ✓ PASS — 0 violations |
+| 1024×600 — tablet | ✓ PASS — 0 violations |
+| 1920×1080 — HD monitor | ✓ PASS — 0 violations |
+
+**Installer and rollback scripts:** unchanged from v0.2.0-beta.1.
+
+---
+
 ## [v0.2.0-beta.1] — 2026-11-01
 
 ### Adaptive Display / Stretch to Fit
@@ -100,5 +142,6 @@ Raspberry Pi 4 with a 7-inch 800×480 DSI touchscreen running Klipper and Moonra
 
 ---
 
+[v0.2.0-beta.2]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.2
 [v0.2.0-beta.1]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.1
 [v0.1.0-beta.1]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.1.0-beta.1
