@@ -44,10 +44,20 @@ def os_check(os_id, os_ver, os_codename):
 
 
 def python_check(major, minor):
-    """Return (ok, message) replicating the install.sh Python version gate."""
+    """Return (ok, message) replicating the install.sh Python version gate.
+
+    This mirrors the check applied to the venv interpreter ($PY), not system python3.
+    When the venv does not exist, the check is skipped (returns True, "skipped") —
+    the PyQt6 import check that follows will catch the missing venv.
+    """
     if major < 3 or (major == 3 and minor < 11):
         return False, f"Python {major}.{minor} is not supported. Nexus Screen requires Python 3.11 or later."
     return True, f"Python {major}.{minor}"
+
+
+def python_check_venv_missing():
+    """When the venv doesn't exist the Python check is skipped — returns True."""
+    return True, "skipped (venv not found)"
 
 
 # ── OS check tests ────────────────────────────────────────────────────────────
@@ -79,25 +89,30 @@ check(not ok and "Cannot parse" in msg, "OS check: non-numeric VERSION_ID reject
 ok, msg = os_check("raspbian", "11", "bullseye")
 check(not ok and "not supported" in msg, "OS check: raspbian 11 (bullseye) rejected")
 
-# ── Python version check tests ────────────────────────────────────────────────
+# ── Python version check tests (venv interpreter) ────────────────────────────
+# The check applies to $PY (the venv Python), not the system python3.
 
 ok, msg = python_check(3, 11)
-check(ok, "Python check: 3.11 accepted")
+check(ok, "Python check (venv): 3.11 accepted")
 
 ok, msg = python_check(3, 12)
-check(ok, "Python check: 3.12 accepted")
+check(ok, "Python check (venv): 3.12 accepted")
 
 ok, msg = python_check(3, 13)
-check(ok, "Python check: 3.13 accepted (future release)")
+check(ok, "Python check (venv): 3.13 accepted (future release)")
 
 ok, msg = python_check(3, 10)
-check(not ok and "3.10" in msg, "Python check: 3.10 rejected")
+check(not ok and "3.10" in msg, "Python check (venv): 3.10 rejected")
 
 ok, msg = python_check(3, 9)
-check(not ok and "3.9" in msg, "Python check: 3.9 rejected (Bullseye default)")
+check(not ok and "3.9" in msg, "Python check (venv): 3.9 rejected (Bullseye default)")
 
 ok, msg = python_check(2, 7)
-check(not ok, "Python check: 2.7 rejected")
+check(not ok, "Python check (venv): 2.7 rejected")
+
+# When the venv does not exist, the check is skipped — PyQt6 import below catches it
+ok, msg = python_check_venv_missing()
+check(ok, "Python check (venv): missing venv skips version check (PyQt6 check handles it)")
 
 # ── Installer syntax check ────────────────────────────────────────────────────
 
@@ -107,10 +122,21 @@ check(result.returncode == 0,
 
 # ── Current environment check (informational, always passes) ─────────────────
 
-cur_major = sys.version_info.major
-cur_minor = sys.version_info.minor
-ok, msg = python_check(cur_major, cur_minor)
-check(ok, f"Python check: current interpreter {cur_major}.{cur_minor} meets requirement")
+venv_py = os.path.expanduser("~/nexus-screen-env/bin/python")
+if os.path.isfile(venv_py) and os.access(venv_py, os.X_OK):
+    import subprocess as _sp
+    _r = _sp.run([venv_py, "-c", "import sys; print('%d.%d' % sys.version_info[:2])"],
+                 capture_output=True, text=True)
+    if _r.returncode == 0:
+        venv_ver = _r.stdout.strip()
+        vmaj, vmin = (int(x) for x in venv_ver.split("."))
+        ok, msg = python_check(vmaj, vmin)
+        check(ok, f"Python check (venv): {venv_py} is Python {venv_ver} — meets requirement")
+    else:
+        check(False, f"Python check (venv): {venv_py} failed to report version")
+else:
+    ok, msg = python_check_venv_missing()
+    check(ok, f"Python check (venv): {venv_py} not present — skip accepted")
 
 os_id = ""
 os_ver = ""

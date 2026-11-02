@@ -7,6 +7,47 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.2.0-beta.4] — 2026-11-01
+
+### Voron 2.4 Physical Validation + Python Preflight Fix
+
+#### Physical validation — Voron 2.4 (32-bit BGRA8888 framebuffer)
+
+v0.2.0-beta.3 was installed and physically tested on a Voron 2.4 with an 800×480
+display. The BCM2708 framebuffer reported BGRA8888 (32-bit, `bits_per_pixel = 32`,
+`RGBA: 8/16, 8/8, 8/0, 8/24`). Installation completed without errors; the interface
+and touchscreen worked correctly; StealthChanger was auto-detected. This confirms
+that the 32-bit framebuffer support introduced in beta.3 works correctly on the
+target hardware.
+
+The "unverified hardware rendering" risk noted after beta.3 is resolved.
+
+| Hardware | Framebuffer | Result |
+|---|---|---|
+| Voron 2.4 (Raspberry Pi 4) | 800×480 BGRA8888 (32-bit) | ✓ Installed, interface running, StealthChanger detected |
+| BigTreeTech CB1 | 480×320 RGB565 (16-bit) | ✓ Previously validated (v0.2.0-beta.2) |
+
+#### Python preflight check — now validates the venv interpreter
+
+The OS compatibility check added in beta.3 read `python3` (the system interpreter)
+rather than `$PY` (the `~/nexus-screen-env/bin/python` interpreter that Nexus Screen
+actually runs). On a standard Bookworm host the two are the same, so the check
+passed silently. But a venv created from a non-default interpreter (e.g. an older
+Python installed alongside Bookworm's 3.11) could satisfy the system check while the
+actual Nexus Screen interpreter failed the version requirement.
+
+**Fix (`deploy/install.sh`):** the Python version check now tests `$PY` directly.
+If the venv does not exist yet (the user hasn't run Step 3 of INSTALLATION.md), the
+Python version check is skipped — the PyQt6 import check that follows handles the
+missing venv with a clear "see docs/INSTALLATION.md" message. The failure message
+now names the venv path and includes the correct command to recreate it.
+
+**Regression tests (`tests/test_os_compat.py`):** one additional test case added
+(missing-venv skip behaviour); existing Python version cases updated to reflect the
+venv-interpreter context.
+
+---
+
 ## [v0.2.0-beta.3] — 2026-11-01
 
 ### 32-bit Framebuffer Support — Voron 2.4 / BCM2708 Compatible
@@ -245,6 +286,7 @@ Raspberry Pi 4 with a 7-inch 800×480 DSI touchscreen running Klipper and Moonra
 
 ---
 
+[v0.2.0-beta.4]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.4
 [v0.2.0-beta.3]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.3
 [v0.2.0-beta.2]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.2
 [v0.2.0-beta.1]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.1

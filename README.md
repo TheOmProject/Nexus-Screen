@@ -7,7 +7,7 @@ Nexus Screen is an independent, touch-optimized UI for printers running
 It runs directly on the framebuffer (no desktop environment required) and is
 designed for embedded 800×480 DSI touchscreen panels on Raspberry Pi.
 
-**Status: Public Beta — v0.2.0-beta.3**  
+**Status: Public Beta — v0.2.0-beta.4**  
 See [Beta Limitations](#beta-limitations) before installing.
 
 ---
@@ -49,7 +49,7 @@ See [Beta Limitations](#beta-limitations) before installing.
 |---|---|
 | Single-board computer | Raspberry Pi 4 (2 GB RAM) |
 | Single-board computer | BigTreeTech CB1 (see note below) |
-| Single-board computer | Raspberry Pi 4 (Voron 2.4 — 32-bit BCM2708 framebuffer) |
+| Single-board computer | Raspberry Pi 4 (Voron 2.4 — 32-bit BGRA8888 framebuffer, physically tested) |
 | Operating system | Debian 12 (Bookworm) or Raspberry Pi OS (Bookworm), 64-bit (aarch64) |
 | Display | 800×480 DSI touchscreen, `/dev/fb0` framebuffer (recommended) |
 | Display | 480×320 DSI touchscreen (CB1 / smaller panels — see note below) |
@@ -193,7 +193,7 @@ journalctl -u nexus-screen -b
 
 ## Beta Limitations
 
-This is a **public beta**. The following are known limitations in v0.2.0-beta.3:
+This is a **public beta**. The following are known limitations in v0.2.0-beta.4:
 
 - **Tested on two hardware configurations** — see [Supported Hardware](#supported-hardware)
 - **Adaptive scaling is best-effort on small displays** — 800×480 is the reference resolution; smaller panels (480×320 and below) may show truncated labels on some screens; all primary controls remain accessible

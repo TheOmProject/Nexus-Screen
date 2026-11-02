@@ -65,14 +65,21 @@ case "$os_id" in
 esac
 say "operating system" "${os_id} ${os_ver} (${os_codename})"
 
-# Python interpreter: 3.11 or later required.
-py_ver="$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || echo 0.0)"
-py_maj="$(echo "$py_ver" | cut -d. -f1)"
-py_min="$(echo "$py_ver" | cut -d. -f2)"
-if [ "$py_maj" -lt 3 ] 2>/dev/null || { [ "$py_maj" -eq 3 ] && [ "$py_min" -lt 11 ] 2>/dev/null; }; then
-    fail "Python ${py_ver} found but Python 3.11 or later is required. On Debian 12 install python3.11: sudo apt install python3.11"
+# Python interpreter in the virtual environment: 3.11 or later required.
+# Check $PY — the interpreter Nexus Screen actually runs — not the system python3.
+# If the venv does not exist yet, skip this check; the PyQt6 import check below will
+# catch the missing venv and print the correct "see docs/INSTALLATION.md" message.
+if [ -x "$PY" ]; then
+    py_ver="$(as_owner "$PY" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || echo 0.0)"
+    py_maj="$(echo "$py_ver" | cut -d. -f1)"
+    py_min="$(echo "$py_ver" | cut -d. -f2)"
+    if [ "$py_maj" -lt 3 ] 2>/dev/null || { [ "$py_maj" -eq 3 ] && [ "$py_min" -lt 11 ] 2>/dev/null; }; then
+        fail "Python ${py_ver} in $PY is not supported. Nexus Screen requires Python 3.11 or later. Recreate the venv with a Python 3.11 interpreter: python3.11 -m venv ~/nexus-screen-env --system-site-packages"
+    fi
+    say "python (venv)" "$(as_owner "$PY" --version 2>&1)  ($PY)"
+else
+    say "python (venv)" "venv not found at $PY — will fail at PyQt6 check below"
 fi
-say "python3" "$(python3 --version 2>&1)"
 
 # Repo integrity: clean working tree, on main branch
 [ -z "$(as_owner git -C "$REPO" status --porcelain)" ] || fail "uncommitted changes in $REPO"
