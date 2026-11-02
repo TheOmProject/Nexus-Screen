@@ -81,11 +81,57 @@ else
     say "numpy" "ok"
 fi
 
-# Framebuffer — presence, bit depth, and resolution
+# Framebuffer — presence, bit depth, format, and resolution
 [ -c /dev/fb0 ] || fail "/dev/fb0 missing"
 fb_bpp="$(cat /sys/class/graphics/fb0/bits_per_pixel 2>/dev/null || echo unknown)"
-[ "$fb_bpp" = 16 ] \
-    || fail "Unsupported framebuffer: ${fb_bpp} bits per pixel (expected 16-bit RGB565)"
+case "$fb_bpp" in
+    16)
+        FB_FMT="RGB565"
+        ;;
+    32)
+        FB_FMT="$(python3 - <<'PYEOF' 2>/dev/null
+import struct, fcntl, sys
+try:
+    with open("/dev/fb0", "rb") as f:
+        raw = fcntl.ioctl(f, 0x4600, bytes(160))
+    fields = struct.unpack_from("20I", raw)
+    ro, rl = fields[8],  fields[9]
+    go, gl = fields[11], fields[12]
+    bo, bl = fields[14], fields[15]
+    if rl == gl == bl == 8 and ro + 8 <= 32 and go + 8 <= 32 and bo + 8 <= 32:
+        used = 0
+        ok = True
+        for off in (ro, go, bo):
+            mask = 0xFF << off
+            if used & mask:
+                ok = False
+            used |= mask
+        if ok:
+            if ro == 16 and go == 8 and bo == 0:
+                print("BGRA8888", end="")
+            elif ro == 0 and go == 8 and bo == 16:
+                print("RGBA8888", end="")
+            else:
+                print(f"32bpp-R8/{ro}-G8/{go}-B8/{bo}", end="")
+        else:
+            print(f"UNSUPPORTED:channels-overlap", end="")
+    else:
+        print(f"UNSUPPORTED:R{rl}/{ro}-G{gl}/{go}-B{bl}/{bo}", end="")
+except Exception as e:
+    print(f"UNKNOWN:{e}", end="")
+PYEOF
+        )"
+        case "$FB_FMT" in
+            UNSUPPORTED:*)
+                fail "Unsupported 32-bit framebuffer (${FB_FMT#UNSUPPORTED:}). Nexus Screen requires 8-bit R, G, B channels." ;;
+            UNKNOWN:*)
+                fail "Cannot determine 32-bit framebuffer format: ${FB_FMT#UNKNOWN:}" ;;
+        esac
+        ;;
+    *)
+        fail "Unsupported framebuffer: ${fb_bpp} bits per pixel. Nexus Screen requires 16-bit RGB565 or a compatible 32-bit framebuffer."
+        ;;
+esac
 fb_vsize="$(cat /sys/class/graphics/fb0/virtual_size 2>/dev/null || echo "")"
 if [ -n "$fb_vsize" ]; then
     FB_W="${fb_vsize%%,*}"
@@ -93,7 +139,7 @@ if [ -n "$fb_vsize" ]; then
 else
     FB_W=800; FB_H=480
 fi
-say "framebuffer" "/dev/fb0  ${FB_W}×${FB_H}  ${fb_bpp}-bpp"
+say "framebuffer" "/dev/fb0  ${FB_W}×${FB_H}  ${fb_bpp}-bpp  ${FB_FMT}"
 [ "$FB_W" = 800 ] && [ "$FB_H" = 480 ] \
     || echo "  Notice: non-standard display (${FB_W}×${FB_H}) — adaptive scaling enabled"
 
@@ -141,6 +187,7 @@ NEXUS_REPO=$REPO
 NEXUS_REPO_HEAD=$head
 FB_W=$FB_W
 FB_H=$FB_H
+FB_FMT=$FB_FMT
 EOF
 ls -l /etc/systemd/system/multi-user.target.wants/ > "$B/multi-user.target.wants.txt"
 cat > "$B/RESTORE.md" <<EOF

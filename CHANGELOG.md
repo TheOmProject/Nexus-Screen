@@ -7,6 +7,64 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.2.0-beta.3] — 2026-11-01
+
+### 32-bit Framebuffer Support — Voron 2.4 / BCM2708 Compatible
+
+The installer and health check previously rejected any framebuffer with a bit depth
+other than 16 (RGB565). The BCM2708 framebuffer used by Raspberry Pi on Voron 2.4
+machines exposes a 32-bit BGRA8888 layout (`RGBA: 8/16, 8/8, 8/0, 8/24`), causing
+the preflight check to abort with an unsupported-format error before installation
+could proceed.
+
+**Root cause:** `deploy/install.sh` tested `bits_per_pixel = 16` as a hard gate;
+`deploy/healthcheck.py` decoded pixels assuming 16-bit RGB565 unconditionally.
+Neither consulted the actual channel layout reported by the kernel.
+
+**Fix — `_parse_fb_format()` and `_read_pixels()` (`deploy/healthcheck.py`):**
+The health check now reads the framebuffer channel layout using the
+`FBIOGET_VSCREENINFO` ioctl (`0x4600`) and validates the result against supported
+formats. `_parse_fb_format(bpp, r_off, r_len, g_off, g_len, b_off, b_len)` is a
+pure function (no I/O) that accepts RGB565, BGRA8888, RGBA8888, and any compatible
+32-bit layout with 8-bit, non-overlapping R/G/B channels, and rejects everything
+else with a clear diagnostic message. `_read_pixels()` applies the detected channel
+offsets at runtime, with correct stride handling for both formats. For 16-bit, the
+ioctl result is used when available; if `/dev/fb0` is inaccessible (test
+environments), the known-good RGB565 layout is assumed.
+
+**Fix — `deploy/install.sh` framebuffer check:**
+The installer replaces the `[ "$fb_bpp" = 16 ]` gate with a `case` statement that
+accepts 16-bit directly as RGB565, validates 32-bit by calling a small inline Python
+snippet to run `FBIOGET_VSCREENINFO`, and rejects any unsupported 32-bit layout or
+unknown bit depth with a descriptive error. The detected format name (`RGB565`,
+`BGRA8888`, `RGBA8888`, etc.) is logged in the preflight summary and saved in the
+backup `state.env` as `FB_FMT`.
+
+**Qt linuxfb:** Qt's linuxfb plugin calls `FBIOGET_VSCREENINFO` internally and
+selects the correct `QImage` pixel format at startup. The service unit template and
+application code are unchanged.
+
+**Regression tests (`tests/test_fb_support.py`):**
+25 tests covering `_parse_fb_format` and `_read_pixels` with synthetic framebuffer
+files, padded strides, both pixel formats, and rejection of all invalid layouts.
+
+| Check | 16-bit RGB565 | 32-bit BGRA8888 |
+|---|---|---|
+| `_parse_fb_format` accepts | ✓ | ✓ |
+| `_parse_fb_format` rejects non-8-bit channel | — | ✓ |
+| `_parse_fb_format` rejects channel overflow | — | ✓ |
+| `_parse_fb_format` rejects channel overlap | — | ✓ |
+| `_parse_fb_format` rejects 24-bit / 8-bit bpp | ✓ | ✓ |
+| `_read_pixels` pure primary colours | ✓ | ✓ |
+| `_read_pixels` padded stride | ✓ | ✓ |
+| `_read_pixels` luminance not-black (white frame) | ✓ | ✓ |
+
+Button boundary regression tests (from v0.2.0-beta.2) re-validated: 4/4 PASS.
+
+**Installer and rollback scripts:** rollback.sh and commands.sh unchanged.
+
+---
+
 ## [v0.2.0-beta.2] — 2026-11-01
 
 ### Button Boundary Fix — All Interactive Controls Stay On-Screen at 480×320
@@ -142,6 +200,7 @@ Raspberry Pi 4 with a 7-inch 800×480 DSI touchscreen running Klipper and Moonra
 
 ---
 
+[v0.2.0-beta.3]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.3
 [v0.2.0-beta.2]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.2
 [v0.2.0-beta.1]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.1
 [v0.1.0-beta.1]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.1.0-beta.1

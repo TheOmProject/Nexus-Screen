@@ -5,17 +5,23 @@
 
 Exit 0 when the essential checks pass: service running without restart loop, live mode
 without printer commands, owns the framebuffer, connected to Moonraker, screen not black.
-Console graphics mode (tty7) is reported but is not essential (the app also hides the cursor)."""
+Console graphics mode (tty7) is reported but is not essential (the app also hides the cursor).
+
+Supported framebuffer formats:
+  16-bit RGB565  (Voron Micron, CB1)
+  32-bit BGRA8888 and compatible 32-bit layouts  (Voron 2.4 / BCM2708)"""
 import argparse
 import fcntl
 import json
 import os
+import struct
 import subprocess
 import sys
 import time
 
 UNIT = "nexus-screen.service"
 KDGETMODE = 0x4B3B
+FBIOGET_VSCREENINFO = 0x4600
 
 
 def show(*props):
@@ -65,8 +71,64 @@ def vt_state():
     return active, graphics
 
 
+def _parse_fb_format(bpp, r_off, r_len, g_off, g_len, b_off, b_len):
+    """Validate a framebuffer pixel format; return a format dict or raise RuntimeError.
+
+    The dict contains: bpp, name, bytes_pp, r_off, r_len, g_off, g_len, b_off, b_len.
+    This function is pure (no I/O) and is directly testable without hardware.
+    """
+    if bpp == 16:
+        if (r_off, r_len, g_off, g_len, b_off, b_len) == (11, 5, 5, 6, 0, 5):
+            return {"bpp": 16, "name": "RGB565", "bytes_pp": 2,
+                    "r_off": 11, "r_len": 5, "g_off": 5, "g_len": 6, "b_off": 0, "b_len": 5}
+        raise RuntimeError(
+            f"Unsupported 16-bit framebuffer layout: "
+            f"R={r_len}/{r_off} G={g_len}/{g_off} B={b_len}/{b_off} "
+            f"(Nexus Screen requires RGB565: R=5/11 G=6/5 B=5/0)."
+        )
+    if bpp == 32:
+        for ch_name, off, length in (("R", r_off, r_len), ("G", g_off, g_len), ("B", b_off, b_len)):
+            if length != 8:
+                raise RuntimeError(
+                    f"Unsupported 32-bit framebuffer: {ch_name} channel is {length} bits "
+                    f"(all channels must be 8 bits). "
+                    f"Layout: R={r_len}/{r_off} G={g_len}/{g_off} B={b_len}/{b_off}."
+                )
+            if off + 8 > 32:
+                raise RuntimeError(
+                    f"Unsupported 32-bit framebuffer: {ch_name} channel at bit offset {off} "
+                    f"overflows 32 bits."
+                )
+        used = 0
+        for off in (r_off, g_off, b_off):
+            mask = 0xFF << off
+            if used & mask:
+                raise RuntimeError(
+                    f"Unsupported 32-bit framebuffer: RGB channels overlap. "
+                    f"Layout: R={r_len}/{r_off} G={g_len}/{g_off} B={b_len}/{b_off}."
+                )
+            used |= mask
+        if r_off == 16 and g_off == 8 and b_off == 0:
+            name = "BGRA8888"   # confirmed Voron 2.4 / BCM2708 format
+        elif r_off == 0 and g_off == 8 and b_off == 16:
+            name = "RGBA8888"
+        else:
+            name = f"32bpp-R8/{r_off}-G8/{g_off}-B8/{b_off}"
+        return {"bpp": 32, "name": name, "bytes_pp": 4,
+                "r_off": r_off, "r_len": 8, "g_off": g_off, "g_len": 8,
+                "b_off": b_off, "b_len": 8}
+    raise RuntimeError(
+        f"Unsupported framebuffer: {bpp} bits per pixel. "
+        f"Nexus Screen supports 16-bit RGB565 and compatible 32-bit framebuffers "
+        f"with 8-bit R, G, B channels."
+    )
+
+
 def fb_info():
-    """Return (width, height, stride, bits_per_pixel) from sysfs, or raise RuntimeError."""
+    """Return (width, height, stride, fmt) from /dev/fb0 sysfs + ioctl, or raise RuntimeError.
+
+    fmt is the dict returned by _parse_fb_format().
+    """
     try:
         stride = int(open("/sys/class/graphics/fb0/stride").read().strip())
         vsize  = open("/sys/class/graphics/fb0/virtual_size").read().strip()  # "W,H"
@@ -74,27 +136,70 @@ def fb_info():
         bpp = int(open("/sys/class/graphics/fb0/bits_per_pixel").read().strip())
     except (OSError, ValueError) as exc:
         raise RuntimeError(f"Cannot read framebuffer sysfs: {exc}") from exc
-    if bpp != 16:
-        raise RuntimeError(
-            f"Unsupported framebuffer format: {bpp} bits per pixel "
-            f"(expected 16-bit RGB565). Nexus Screen requires a 16-bpp framebuffer."
-        )
-    return fb_w, fb_h, stride, bpp
+
+    # Read channel layout via FBIOGET_VSCREENINFO ioctl.
+    # struct fb_var_screeninfo layout (first 80 bytes, 20 × uint32):
+    #   [0-5]  xres, yres, xres_v, yres_v, xoff, yoff
+    #   [6]    bits_per_pixel   [7] grayscale
+    #   [8-10] red   (offset, length, msb_right)
+    #   [11-13] green  [14-16] blue  [17-19] transp
+    try:
+        with open("/dev/fb0", "rb") as f:
+            raw = fcntl.ioctl(f, FBIOGET_VSCREENINFO, bytes(160))
+        fields = struct.unpack_from("20I", raw)
+        r_off, r_len = fields[8],  fields[9]
+        g_off, g_len = fields[11], fields[12]
+        b_off, b_len = fields[14], fields[15]
+    except OSError:
+        # Fallback when /dev/fb0 is not accessible for ioctl (test environments).
+        # For 16-bit we know the format; for 32-bit the layout is ambiguous without ioctl.
+        if bpp == 16:
+            r_off, r_len, g_off, g_len, b_off, b_len = 11, 5, 5, 6, 0, 5   # RGB565
+        else:
+            raise RuntimeError(
+                f"Cannot determine {bpp}-bit framebuffer pixel format: "
+                f"/dev/fb0 not accessible for ioctl (FBIOGET_VSCREENINFO)."
+            )
+
+    return fb_w, fb_h, stride, _parse_fb_format(bpp, r_off, r_len, g_off, g_len, b_off, b_len)
+
+
+def _read_pixels(fb_path, fb_w, fb_h, stride, fmt):
+    """Read RGB pixel data from a framebuffer file.
+
+    Returns three float32 arrays (r, g, b) shaped (fb_h, fb_w) with values in 0–255.
+    Handles padded strides correctly for both 16-bit and 32-bit formats.
+    This function is testable with any file, not only /dev/fb0.
+    """
+    import numpy as np
+    bpp = fmt["bpp"]
+    if bpp == 16:
+        row_px = stride // 2                    # full row in pixels (may include padding)
+        raw = (np.fromfile(fb_path, dtype=np.uint16, count=row_px * fb_h)
+               .reshape(fb_h, row_px)[:, :fb_w])
+        r = ((raw >> 11) & 0x1F).astype(np.float32) * (255.0 / 31)
+        g = ((raw >>  5) & 0x3F).astype(np.float32) * (255.0 / 63)
+        b = ( raw        & 0x1F).astype(np.float32) * (255.0 / 31)
+    else:                                        # 32-bit: use detected channel offsets
+        row_px = stride // 4
+        raw32 = (np.fromfile(fb_path, dtype=np.uint32, count=row_px * fb_h)
+                 .reshape(fb_h, row_px)[:, :fb_w])
+        r = ((raw32 >> fmt["r_off"]) & 0xFF).astype(np.float32)
+        g = ((raw32 >> fmt["g_off"]) & 0xFF).astype(np.float32)
+        b = ((raw32 >> fmt["b_off"]) & 0xFF).astype(np.float32)
+    return r, g, b
 
 
 def screen(png=None):
     import numpy as np
-    fb_w, fb_h, stride, _ = fb_info()
-    # stride may be padded beyond fb_w*2; read full rows then trim to actual width
-    row_px = stride // 2
-    raw = np.fromfile("/dev/fb0", dtype=np.uint16, count=row_px * fb_h).reshape(fb_h, row_px)[:, :fb_w]
-    lum = ((raw >> 11) & 0x1F) * 8 * 0.3 + ((raw >> 5) & 0x3F) * 4 * 0.59 + (raw & 0x1F) * 8 * 0.11
+    fb_w, fb_h, stride, fmt = fb_info()
+    r, g, b = _read_pixels("/dev/fb0", fb_w, fb_h, stride, fmt)
+    lum = r * 0.3 + g * 0.59 + b * 0.11
     if png:
         from PIL import Image
-        r = ((raw >> 11) & 0x1F) << 3
-        g = ((raw >> 5) & 0x3F) << 2
-        b = (raw & 0x1F) << 3
-        Image.fromarray(np.dstack([r, g, b]).astype("uint8")).save(png)
+        Image.fromarray(np.dstack([r.astype(np.uint8),
+                                   g.astype(np.uint8),
+                                   b.astype(np.uint8)])).save(png)
     return float(lum.mean()), float(lum.std())
 
 

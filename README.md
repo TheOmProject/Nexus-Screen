@@ -7,7 +7,7 @@ Nexus Screen is an independent, touch-optimized UI for printers running
 It runs directly on the framebuffer (no desktop environment required) and is
 designed for embedded 800×480 DSI touchscreen panels on Raspberry Pi.
 
-**Status: Public Beta — v0.2.0-beta.2**  
+**Status: Public Beta — v0.2.0-beta.3**  
 See [Beta Limitations](#beta-limitations) before installing.
 
 ---
@@ -49,6 +49,7 @@ See [Beta Limitations](#beta-limitations) before installing.
 |---|---|
 | Single-board computer | Raspberry Pi 4 (2 GB RAM) |
 | Single-board computer | BigTreeTech CB1 (see note below) |
+| Single-board computer | Raspberry Pi 4 (Voron 2.4 — 32-bit BCM2708 framebuffer) |
 | Operating system | 64-bit Raspberry Pi OS (Debian Bookworm, aarch64) |
 | Display | 800×480 DSI touchscreen, `/dev/fb0` framebuffer (recommended) |
 | Display | 480×320 DSI touchscreen (CB1 / smaller panels — see note below) |
@@ -68,8 +69,10 @@ experience may not be as polished as on the recommended 800×480 resolution.
 
 **For the best visual experience, an 800×480 display or larger is recommended.**
 
-**Framebuffer requirement:** the display must expose a 16-bit RGB565 framebuffer
-(`bits_per_pixel = 16`) at `/dev/fb0`. Verify with:
+**Framebuffer requirement:** the display must expose a supported framebuffer at
+`/dev/fb0`: **16-bit RGB565** (`bits_per_pixel = 16`) or a **32-bit framebuffer
+with 8-bit R, G, B channels** (e.g. BGRA8888 as used by the BCM2708 driver on
+Voron 2.4). Verify the bit depth with:
 
 ```bash
 cat /sys/class/graphics/fb0/bits_per_pixel
@@ -96,7 +99,8 @@ Community reports of working or failing configurations are welcome via
   sudo apt install python3-numpy
   # or: ~/nexus-screen-env/bin/pip install numpy
   ```
-- A 16-bit RGB565 framebuffer display at `/dev/fb0`
+- A supported framebuffer at `/dev/fb0`: 16-bit RGB565 or a 32-bit framebuffer with
+  8-bit R, G, B channels (BGRA8888, RGBA8888, or equivalent)
 
 ---
 
@@ -188,7 +192,7 @@ journalctl -u nexus-screen -b
 
 ## Beta Limitations
 
-This is a **public beta**. The following are known limitations in v0.2.0-beta.2:
+This is a **public beta**. The following are known limitations in v0.2.0-beta.3:
 
 - **Tested on two hardware configurations** — see [Supported Hardware](#supported-hardware)
 - **Adaptive scaling is best-effort on small displays** — 800×480 is the reference resolution; smaller panels (480×320 and below) may show truncated labels on some screens; all primary controls remain accessible
