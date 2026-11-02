@@ -63,6 +63,51 @@ Button boundary regression tests (from v0.2.0-beta.2) re-validated: 4/4 PASS.
 
 **Installer and rollback scripts:** rollback.sh and commands.sh unchanged.
 
+### OS Compatibility Enforcement — Debian 11 (Bullseye) Blocked with Clear Diagnostic
+
+A public installation attempt failed on Debian 11 (Bullseye) because
+`python3-pyqt6` does not exist in the Bullseye apt repository, and there is no
+safe fallback. The installer previously gave no OS check and produced a confusing
+`PyQt6 not importable` error with no explanation of the root cause.
+
+**Findings (Bullseye investigation):**
+A pip-based workaround exists in theory: PyQt6 6.7.1 is the last release with a
+`manylinux_2_28_aarch64` wheel, which is installable on Bullseye (glibc 2.31).
+PyQt6 6.8.0 and later require glibc 2.39 and are not installable. The pip-bundled
+Qt 6.7 does include the linuxfb hardware platform plugin. However, the framebuffer
+hardware rendering path via pip-bundled Qt on Bullseye hardware has not been validated,
+the PyQt6 version would be permanently frozen at 6.7.x, and Bullseye LTS ended in
+April 2024. Official Bullseye support is not feasible.
+
+**Fix — OS and Python version preflight checks (`deploy/install.sh`):**
+Two new checks run before any other preflight step. The OS check reads
+`/etc/os-release` and accepts `debian` or `raspbian` with `VERSION_ID >= 12`; any
+older version produces a specific error naming the detected OS, directing the user
+to upgrade to Bookworm. The Python check requires `python3 >= 3.11`; earlier
+versions produce a specific error with an install command. Both checks run on
+every dry-run and confirmed install.
+
+**Documentation (`docs/INSTALLATION.md`, `README.md`):**
+Prerequisites updated to list Debian 12 (Bookworm) explicitly. A new
+"Why Debian 12 or later?" section in INSTALLATION.md explains the technical
+reasons for the Bullseye restriction and provides recommended upgrade paths.
+
+**Regression tests (`tests/test_os_compat.py`):**
+18 tests: 9 OS check cases (Bookworm accepted, Bullseye/Buster/Ubuntu/empty
+rejected), 6 Python version cases (3.11+ accepted, 3.10/3.9/2.7 rejected),
+`bash -n` syntax check on install.sh, and live host check.
+
+| Test | Result |
+|---|---|
+| OS check: debian/raspbian 12+ accepted | ✓ PASS |
+| OS check: debian/raspbian 11 (Bullseye) rejected | ✓ PASS |
+| OS check: debian 10 (Buster) rejected | ✓ PASS |
+| OS check: Ubuntu / unknown ID rejected | ✓ PASS |
+| OS check: malformed/empty os-release rejected | ✓ PASS |
+| Python 3.11 / 3.12 / 3.13 accepted | ✓ PASS |
+| Python 3.10 / 3.9 / 2.7 rejected | ✓ PASS |
+| install.sh bash syntax valid | ✓ PASS |
+
 ---
 
 ## [v0.2.0-beta.2] — 2026-11-01

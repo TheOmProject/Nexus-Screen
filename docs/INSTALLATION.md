@@ -3,12 +3,18 @@
 This guide covers a fresh installation of Nexus Screen on a compatible Raspberry Pi.
 
 **Tested configurations:** Raspberry Pi 4 (2 GB) with 800×480 DSI touchscreen;
-BigTreeTech CB1 with 480×320 DSI touchscreen. OS: 64-bit Raspberry Pi OS (Bookworm, aarch64),
+BigTreeTech CB1 with 480×320 DSI touchscreen; Voron 2.4 with 32-bit BCM2708 framebuffer.
+OS: 64-bit Debian 12 (Bookworm) or Raspberry Pi OS based on Bookworm (aarch64).
 Klipper + Moonraker (MainsailOS or FluiddOS).
 
-**Display requirement:** the framebuffer must be 16-bit RGB565 (`/sys/class/graphics/fb0/bits_per_pixel = 16`).
-The installer rejects other depths. Nexus Screen auto-detects the resolution and scales to fit;
-800×480 is the reference resolution.
+**Operating system requirement:** Debian 12 (Bookworm) or later. Debian 11 (Bullseye) is
+**not supported** — see [Why Debian 12 or later?](#why-debian-12-or-later) below.
+
+**Python requirement:** Python 3.11 or later. Bookworm ships Python 3.11 by default.
+
+**Display requirement:** the framebuffer at `/dev/fb0` must be 16-bit RGB565 or a 32-bit
+framebuffer with 8-bit R, G, B channels (BGRA8888 / RGBA8888). Nexus Screen auto-detects
+the resolution and scales to fit; 800×480 is the reference resolution.
 
 ---
 
@@ -16,35 +22,37 @@ The installer rejects other depths. Nexus Screen auto-detects the resolution and
 
 Before you begin:
 
-1. **Klipper and Moonraker must be running.** Verify with:
+1. **Debian 12 (Bookworm) or Raspberry Pi OS (Bookworm), 64-bit:**
+   ```bash
+   cat /etc/os-release   # VERSION_ID must be 12 or higher
+   uname -m              # must print aarch64
+   ```
+   Debian 11 (Bullseye) is not supported. See [Why Debian 12 or later?](#why-debian-12-or-later).
+
+2. **Klipper and Moonraker must be running.** Verify with:
    ```bash
    systemctl is-active klipper moonraker
    ```
    Both should report `active`.
 
-2. **Klipper must be in the `ready` state** (not error/disconnected):
+3. **Klipper must be in the `ready` state** (not error/disconnected):
    ```bash
    curl -s http://localhost:7125/printer/info | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["state"])'
    ```
    Should print `ready`.
 
-3. **A 16-bit RGB565 framebuffer display at `/dev/fb0`:**
+4. **A framebuffer display at `/dev/fb0`** (16-bit RGB565 or 32-bit with 8-bit R, G, B channels):
    ```bash
    ls /dev/fb0
-   cat /sys/class/graphics/fb0/bits_per_pixel   # must print 16
+   cat /sys/class/graphics/fb0/bits_per_pixel   # 16 (RGB565) or 32 (BGRA8888 etc.)
    cat /sys/class/graphics/fb0/virtual_size      # prints W,H — detected automatically
-   ```
-
-4. **64-bit Raspberry Pi OS (aarch64):**
-   ```bash
-   uname -m   # should print aarch64
    ```
 
 ---
 
 ## Step 1 — Install Dependencies
 
-PyQt6 and NumPy are available from the Raspberry Pi OS package repository:
+PyQt6 and NumPy are available from the Debian 12 / Raspberry Pi OS (Bookworm) package repository:
 
 ```bash
 sudo apt update
@@ -60,6 +68,12 @@ python3 -c "import numpy; print('NumPy OK')"
 NumPy is required for `deploy/healthcheck.py` to read and validate the framebuffer
 after installation. The app itself runs without NumPy, but the installer will warn
 and the health check will skip the screen-content check if it is absent.
+
+> **Debian 11 (Bullseye) note:** `python3-pyqt6` is not in the Bullseye apt repository.
+> A pip-based workaround exists (PyQt6 6.7.1 on manylinux_2_28) but the framebuffer
+> hardware rendering path has not been validated on Bullseye hardware, and PyQt6 would
+> be permanently pinned at an old version. Nexus Screen does not officially support
+> Bullseye. Please upgrade to Bookworm.
 
 ---
 
@@ -164,3 +178,34 @@ sudo ~/nexus-screen/deploy/rollback.sh --confirm
 ```
 
 See [docs/TROUBLESHOOTING.md](TROUBLESHOOTING.md) and [docs/UNINSTALL.md](UNINSTALL.md).
+
+---
+
+## Why Debian 12 or later?
+
+Nexus Screen requires Debian 12 (Bookworm) or Raspberry Pi OS based on Bookworm.
+Debian 11 (Bullseye) is explicitly rejected by the installer. Here is why:
+
+| Requirement | Debian 11 (Bullseye) | Debian 12 (Bookworm) |
+|---|---|---|
+| `python3-pyqt6` in apt | **Not available** | ✓ 6.4.2 |
+| Python default version | 3.9 | ✓ 3.11 |
+| glibc version | 2.31 | 2.36 |
+| Bullseye LTS support | **Ended April 2024** | Active |
+
+**Why not install PyQt6 via pip on Bullseye?**
+
+A pip installation path technically exists: PyQt6 6.7.1 (`manylinux_2_28_aarch64`) is the
+last release compatible with Bullseye's glibc 2.31 (PyQt6 6.8.0 and later require glibc 2.39).
+PyQt6 6.8.0+ are not installable on Bullseye — so the version would be permanently frozen at 6.7.x.
+
+The more important reason: the framebuffer hardware rendering path (Qt linuxfb plugin from the
+pip-bundled Qt) has **not been validated on Bullseye hardware**. Working Qt rendering on the
+framebuffer depends on the linuxfb plugin, its `libdrm.so.2` dependency, and the kernel DRM
+interface. Without physical hardware testing on a Bullseye machine connected to a real
+framebuffer display, the interaction between the pip-bundled Qt 6.7 and the older Bullseye
+kernel/driver stack cannot be guaranteed.
+
+**Recommended action:** upgrade to Raspberry Pi OS Bookworm (or Debian 12). MainsailOS and
+FluiddOS both offer Bookworm images. Upgrading in-place from Bullseye to Bookworm is possible
+but a fresh image is more reliable. See the MainsailOS or FluiddOS documentation for upgrade paths.

@@ -41,6 +41,39 @@ as_owner() { if [ "$(id -un)" = "$OWNER" ]; then "$@"; else sudo -u "$OWNER" "$@
 
 echo "Preflight (installing for user: $OWNER)"
 
+# Operating system: Debian 12 (Bookworm) or later required.
+# Debian 11 (Bullseye) and older lack python3-pyqt6 in the apt repository. pip-based
+# installation of PyQt6 on Bullseye is technically possible (PyQt6 6.7.1, manylinux_2_28)
+# but the linuxfb hardware rendering path has not been validated on Bullseye hardware,
+# and PyQt6 would be permanently pinned at 6.7.x with no upgrade path. Bullseye LTS also
+# ended April 2024. Upgrade to Bookworm before installing Nexus Screen.
+os_id="$(grep '^ID=' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"')"
+os_ver="$(grep '^VERSION_ID=' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"')"
+os_codename="$(grep '^VERSION_CODENAME=' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"')"
+if [ -z "$os_id" ] || [ -z "$os_ver" ]; then
+    fail "Cannot determine OS version (/etc/os-release missing or malformed). Nexus Screen requires Debian 12 (Bookworm) or later."
+fi
+case "$os_id" in
+    debian|raspbian)
+        if [ "$os_ver" -lt 12 ] 2>/dev/null; then
+            fail "Debian ${os_ver} (${os_codename}) is not supported. Nexus Screen requires Debian 12 (Bookworm) or later. See docs/INSTALLATION.md for details."
+        fi
+        ;;
+    *)
+        fail "Unsupported OS: ${os_id} ${os_ver}. Nexus Screen requires Debian 12 (Bookworm) or Raspberry Pi OS based on Bookworm."
+        ;;
+esac
+say "operating system" "${os_id} ${os_ver} (${os_codename})"
+
+# Python interpreter: 3.11 or later required.
+py_ver="$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || echo 0.0)"
+py_maj="$(echo "$py_ver" | cut -d. -f1)"
+py_min="$(echo "$py_ver" | cut -d. -f2)"
+if [ "$py_maj" -lt 3 ] 2>/dev/null || { [ "$py_maj" -eq 3 ] && [ "$py_min" -lt 11 ] 2>/dev/null; }; then
+    fail "Python ${py_ver} found but Python 3.11 or later is required. On Debian 12 install python3.11: sudo apt install python3.11"
+fi
+say "python3" "$(python3 --version 2>&1)"
+
 # Repo integrity: clean working tree, on main branch
 [ -z "$(as_owner git -C "$REPO" status --porcelain)" ] || fail "uncommitted changes in $REPO"
 branch="$(as_owner git -C "$REPO" rev-parse --abbrev-ref HEAD)"

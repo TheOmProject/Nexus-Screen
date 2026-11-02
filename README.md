@@ -50,7 +50,7 @@ See [Beta Limitations](#beta-limitations) before installing.
 | Single-board computer | Raspberry Pi 4 (2 GB RAM) |
 | Single-board computer | BigTreeTech CB1 (see note below) |
 | Single-board computer | Raspberry Pi 4 (Voron 2.4 — 32-bit BCM2708 framebuffer) |
-| Operating system | 64-bit Raspberry Pi OS (Debian Bookworm, aarch64) |
+| Operating system | Debian 12 (Bookworm) or Raspberry Pi OS (Bookworm), 64-bit (aarch64) |
 | Display | 800×480 DSI touchscreen, `/dev/fb0` framebuffer (recommended) |
 | Display | 480×320 DSI touchscreen (CB1 / smaller panels — see note below) |
 | Touch input | Capacitive touch via `/dev/input/eventN` |
@@ -87,9 +87,10 @@ Community reports of working or failing configurations are welcome via
 
 ## Requirements
 
-- Raspberry Pi 4 or BigTreeTech CB1, 64-bit OS (Bookworm)
+- Raspberry Pi 4 or BigTreeTech CB1, **Debian 12 (Bookworm) or Raspberry Pi OS (Bookworm), 64-bit**
+  — Debian 11 (Bullseye) is **not supported** (see [docs/INSTALLATION.md](docs/INSTALLATION.md))
 - Klipper and Moonraker installed and running
-- Python 3.11 or later
+- Python 3.11 or later (included with Bookworm)
 - PyQt6 ≥ 6.4 — installed via `apt`:
   ```bash
   sudo apt install python3-pyqt6
