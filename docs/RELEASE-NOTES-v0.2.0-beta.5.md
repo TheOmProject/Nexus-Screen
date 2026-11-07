@@ -1,6 +1,4 @@
-# Nexus Screen v0.2.0-beta.5 — Draft Release Notes
-
-> **Status:** Release Candidate — awaiting owner approval before tag creation.
+# Nexus Screen v0.2.0-beta.5
 
 ---
 
