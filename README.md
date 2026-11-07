@@ -109,49 +109,35 @@ Community reports of working or failing configurations are welcome via
 
 ## Installation
 
-### One-command installation (recommended)
-
 ```bash
 curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash
 ```
 
-This runs a hardware compatibility check, asks whether to also install **Nexus Video** (optional),
-then installs Nexus Screen and optionally the addon. No manual cloning or virtual-environment
-setup is required.
+That's it. The installer will:
 
-**Non-interactive options:**
+1. Check hardware compatibility — blocks with a clear message if requirements are not met
+2. Offer to install missing packages automatically (`python3-pyqt6`, `git`, etc.)
+3. Install Nexus Screen
+4. Ask whether to also install **Nexus Video** (optional animated boot splash)
+5. Register both repos with Moonraker Update Manager
 
-```bash
-# Install only Nexus Screen (no addon prompt)
-curl -fsSL .../bootstrap.sh | bash -s -- --yes
+> Run as your normal user, not as root. The script uses `sudo` only where it's required.
 
-# Install Nexus Screen + Nexus Video addon
-curl -fsSL .../bootstrap.sh | bash -s -- --yes --with-video
-
-# Dry run: check compatibility and show plan, make no changes
-curl -fsSL .../bootstrap.sh | bash -s -- --dry-run
-```
-
-> **Note:** The bootstrap script uses `sudo` only for operations that require it (service
-> configuration, apt). Run it as your normal user, not as root.
-
-### Manual installation
-
-See **[docs/INSTALLATION.md](docs/INSTALLATION.md)** for full step-by-step instructions.
+**Non-interactive (headless / CI):**
 
 ```bash
-# 1. Clone
-git clone https://github.com/omarmunoz5371/Nexus-Screen.git ~/nexus-screen
+# Nexus Screen only
+curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --yes
 
-# 2. Dry run (checks everything, makes no changes)
-sudo ~/nexus-screen/deploy/install.sh
+# Nexus Screen + Nexus Video
+curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --yes --with-video
 
-# 3. Install (auto-rollback on failure)
-sudo ~/nexus-screen/deploy/install.sh --confirm
+# Compatibility check only — no changes made
+curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --dry-run
 ```
 
-The installer stops and disables KlipperScreen if it is present — the KlipperScreen
-installation itself is not removed and can be restored with `deploy/rollback.sh`.
+For manual installation, repair, rollback, and advanced options see
+**[docs/INSTALLATION.md](docs/INSTALLATION.md)**.
 
 ---
 
