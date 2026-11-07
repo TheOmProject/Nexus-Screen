@@ -22,12 +22,13 @@ SETTINGS = [("screen", "Screen", "Brightness, screen timeout", icons.camera),
             ("network", "Network", "Wi-Fi, Ethernet", icons.refresh),
             ("camera", "Camera", "Webcam status", icons.camera),
             ("timelapse", "Timelapse", "Mode, interval, output", icons.clock),
+            ("startup_video", "Startup Video", "Boot animation pack", icons.play),
             ("system", "System", "Info, services, power", icons.gear),
-            ("firmware", "Firmware", "Versions, restarts, updates", icons.load),
-            ("about", "About", "Version and credits", icons.check)]
+            ("firmware", "Firmware", "Versions, restarts, updates", icons.load)]
 SUPPORT = [("tools", "Tools", "Console, logs, utilities", icons.terminal),
            ("maintenance", "Maintenance", "Upkeep and tests", icons.wrench),
-           ("help", "Help", "Documentation links", icons.warning)]
+           ("help", "Help", "Documentation links", icons.warning),
+           ("about", "About", "Version and credits", icons.check)]
 
 
 class SettingsPage(QWidget):
@@ -43,7 +44,7 @@ class SettingsPage(QWidget):
             t.clicked.connect(lambda _=False, k=key: self.open_screen.emit(k))
             self.tiles[key] = t
         place_buttons([self.tiles[k] for k, *_ in SETTINGS], QRectF(cx(8), sy(82), cx(704), sy(180)), 4, 0)
-        place_buttons([self.tiles[k] for k, *_ in SUPPORT], QRectF(cx(8), sy(300), cx(528), sy(90)), 3, 0)
+        place_buttons([self.tiles[k] for k, *_ in SUPPORT], QRectF(cx(8), sy(300), cx(704), sy(90)), 4, 0)
 
     def set_data(self, data):
         pass

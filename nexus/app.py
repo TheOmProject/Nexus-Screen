@@ -29,6 +29,7 @@ from nexus.screens.macros import MacrosScreen
 from nexus.screens.print_files import FilePreviewScreen, PrintCompleteScreen, PrintFilesScreen, PrintPage
 from nexus.screens.settings import (AboutScreen, CameraSettings, FirmwareScreen, NetworkScreen, PrinterSettings,
                                     ScreenSettings, SettingsPage)
+from nexus.screens.startup_video import StartupVideoScreen
 from nexus.screens.timelapse import TimelapseScreen
 from nexus.screens.tools import ConsoleScreen, LogsScreen, SystemScreen
 from nexus.screens.webcam import WebcamScreen
@@ -149,6 +150,7 @@ class MainWindow(QMainWindow):
             "console": ConsoleScreen(self), "logs": LogsScreen(self), "system": SystemScreen(self),
             "screen": ScreenSettings(self), "printer": PrinterSettings(self), "network": NetworkScreen(self),
             "camera": CameraSettings(self), "firmware": FirmwareScreen(self), "about": AboutScreen(self),
+            "startup_video": StartupVideoScreen(self),
             "filament": self.filament_screen, "profiles": self.profiles_screen,
             "boxturtle": self.bt_dashboard, "stealthchanger": self.sc_dashboard,
             "bt_controls": self.bt_controls, "sc_controls": self.sc_controls,

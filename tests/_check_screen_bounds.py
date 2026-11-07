@@ -54,19 +54,20 @@ src.start()
 wait(400)
 
 SCREENS = [
-    ("home",        lambda w: w._on_section("home")),
-    ("settings",    lambda w: w._on_section("settings")),
-    ("screen",      lambda w: w.open("screen")),
-    ("printer",     lambda w: w.open("printer")),
-    ("network",     lambda w: w.open("network")),
-    ("system",      lambda w: w.open("system")),
-    ("firmware",    lambda w: w.open("firmware")),
-    ("about",       lambda w: w.open("about")),
-    ("tools",       lambda w: w.open("tools")),
-    ("control",     lambda w: w._on_section("control")),
-    ("temperature", lambda w: w.push(w.temperature_screen)),
-    ("filament",    lambda w: w._on_section("filament")),
-    ("print",       lambda w: w._on_section("print")),
+    ("home",          lambda w: w._on_section("home")),
+    ("settings",      lambda w: w._on_section("settings")),
+    ("screen",        lambda w: w.open("screen")),
+    ("printer",       lambda w: w.open("printer")),
+    ("network",       lambda w: w.open("network")),
+    ("system",        lambda w: w.open("system")),
+    ("firmware",      lambda w: w.open("firmware")),
+    ("about",         lambda w: w.open("about")),
+    ("startup_video", lambda w: w.open("startup_video")),
+    ("tools",         lambda w: w.open("tools")),
+    ("control",       lambda w: w._on_section("control")),
+    ("temperature",   lambda w: w.push(w.temperature_screen)),
+    ("filament",      lambda w: w._on_section("filament")),
+    ("print",         lambda w: w._on_section("print")),
 ]
 
 for label, navigate in SCREENS:

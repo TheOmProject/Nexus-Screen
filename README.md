@@ -56,16 +56,18 @@ See [Beta Limitations](#beta-limitations) before installing.
 | Touch input | Capacitive touch via `/dev/input/eventN` |
 | Firmware | Klipper + Moonraker on the same host (`localhost:7125`) |
 
-### Display Resolution Recommendation
+### Display Resolution
 
-**Nexus Screen was originally designed and optimized for 800×480 displays.**
+**Minimum supported resolution: 480×320.**
 
-The interface supports adaptive scaling for different screen resolutions. However,
-displays smaller than 800×480 may have reduced text readability, tighter layouts,
-and less visual detail.
+Nexus Screen and Nexus Video use adaptive scaling (`sx()`, `sy()` helpers) so all
+layouts, fonts and touch targets scale to any display from 480×320 upward. The
+interface was originally designed at 800×480, which remains the reference resolution
+and delivers the best visual experience, but 480×320 is fully tested and all primary
+controls remain touch-accessible at that size.
 
-Smaller displays, including 480×320, are supported and usable, but the overall
-experience may not be as polished as on the recommended 800×480 resolution.
+Displays below 480×320 are not supported. The installer will block with
+"INSTALLATION BLOCKED" if the framebuffer reports a smaller size.
 
 **For the best visual experience, an 800×480 display or larger is recommended.**
 
@@ -196,7 +198,7 @@ journalctl -u nexus-screen -b
 This is a **public beta**. The following are known limitations in v0.2.0-beta.4:
 
 - **Tested on two hardware configurations** — see [Supported Hardware](#supported-hardware)
-- **Adaptive scaling is best-effort on small displays** — 800×480 is the reference resolution; smaller panels (480×320 and below) may show truncated labels on some screens; all primary controls remain accessible
+- **Minimum supported display resolution is 480×320** — all menus, buttons and popups are verified touch-accessible at 480×320 and above; 800×480 is the reference resolution and delivers the best visual density
 - **Printer commands require explicit opt-in** — enabled separately with `deploy/commands.sh enable`
 - **Boot splash requires separate media build** — see `docs/SPLASH.md`; the splash media is not
   distributed in the repository and must be built from the source assets
