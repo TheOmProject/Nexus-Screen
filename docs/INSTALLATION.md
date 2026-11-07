@@ -2,6 +2,38 @@
 
 This guide covers a fresh installation of Nexus Screen on a compatible Raspberry Pi.
 
+---
+
+## One-command installation (recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash
+```
+
+The bootstrap installer checks compatibility, installs missing dependencies, installs
+Nexus Screen, and optionally installs Nexus Video — all in one command.
+
+**Security note — curl | bash:** piping a remote script into bash is convenient, but it
+executes code from the internet without reviewing it first. For users who prefer to
+review before running:
+
+```bash
+# Download and inspect first
+curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh \
+  -o /tmp/nexus-bootstrap.sh
+less /tmp/nexus-bootstrap.sh
+# Then run after review:
+bash /tmp/nexus-bootstrap.sh
+```
+
+The installer source is public at
+[github.com/omarmunoz5371/Nexus-Screen/blob/main/deploy/bootstrap.sh](https://github.com/omarmunoz5371/Nexus-Screen/blob/main/deploy/bootstrap.sh).
+It does not use a hidden installation path; all operations are shown in the terminal as they run.
+
+For a manual step-by-step installation without the bootstrap script, continue with this guide.
+
+---
+
 **Tested configurations:** Raspberry Pi 4 (2 GB) with 800×480 DSI touchscreen;
 BigTreeTech CB1 with 480×320 DSI touchscreen; Voron 2.4 with 32-bit BCM2708 framebuffer.
 OS: 64-bit Debian 12 (Bookworm) or Raspberry Pi OS based on Bookworm (aarch64).

@@ -43,18 +43,28 @@ See [Beta Limitations](#beta-limitations) before installing.
 
 ---
 
-## Supported Hardware
+## Hardware Compatibility
 
-| Component | Tested configuration |
-|---|---|
-| Single-board computer | Raspberry Pi 4 (2 GB RAM) |
-| Single-board computer | BigTreeTech CB1 (see note below) |
-| Single-board computer | Raspberry Pi 4 (Voron 2.4 — 32-bit BGRA8888 framebuffer, physically tested) |
-| Operating system | Debian 12 (Bookworm) or Raspberry Pi OS (Bookworm), 64-bit (aarch64) |
-| Display | 800×480 DSI touchscreen, `/dev/fb0` framebuffer (recommended) |
-| Display | 480×320 DSI touchscreen (CB1 / smaller panels — see note below) |
-| Touch input | Capacitive touch via `/dev/input/eventN` |
-| Firmware | Klipper + Moonraker on the same host (`localhost:7125`) |
+| Hardware | Status | Notes |
+|---|---|---|
+| Raspberry Pi 4 (2 GB), 800×480 RGB565 DSI, Debian 12 | **PHYSICALLY TESTED** | Reference configuration |
+| Raspberry Pi 4 (4 GB), Voron 2.4, 800×480 BGRA8888, Debian 12 | **PHYSICALLY TESTED** | 32-bit framebuffer path, v0.2.0-beta.4 |
+| BigTreeTech CB1, 480×320 RGB565 DSI, CB1 OS | **PHYSICALLY TESTED** | Minimum-resolution path, v0.2.0-beta.2 |
+| Raspberry Pi 3 | NOT TESTED | May work; preflight blocks 32-bit armv7l; 64-bit OS required |
+| Raspberry Pi 5 | NOT TESTED | Community reports welcome |
+| Raspberry Pi Zero 2 W | NOT TESTED | RAM may be insufficient (512 MB, min 900 MB) |
+| HDMI displays | NOT TESTED | `/dev/fb0` must exist; depends on driver |
+| SPI displays | NOT TESTED | `/dev/fb0` required; most SPI drivers do not expose one |
+| Debian 11 Bullseye | **NOT SUPPORTED** | Blocked by installer; `python3-pyqt6` not in Bullseye apt repo |
+| Ubuntu / other Debian-based | SIMULATED / CODE-VALIDATED | Preflight accepts; not physically tested |
+
+**Status key:**
+- **PHYSICALLY TESTED** — installed and run on real hardware, confirmed working
+- **SIMULATED / CODE-VALIDATED** — preflight logic verified; install path not run on real hardware
+- **NOT TESTED** — unknown; may work or may not; community reports welcome
+- **NOT SUPPORTED** — installer blocks; will not work
+
+See **[docs/HARDWARE-COMPATIBILITY.md](docs/HARDWARE-COMPATIBILITY.md)** for the full matrix.
 
 ### Display Resolution
 
@@ -80,8 +90,6 @@ Voron 2.4). Verify the bit depth with:
 cat /sys/class/graphics/fb0/bits_per_pixel
 ```
 
-**All other hardware is untested.** This includes Raspberry Pi 3, Pi 5, Pi Zero 2 W,
-HDMI displays, SPI displays, and 32-bit OS images.
 Community reports of working or failing configurations are welcome via
 [GitHub Issues](https://github.com/omarmunoz5371/Nexus-Screen/issues).
 
@@ -160,7 +168,7 @@ curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/dep
 **Add Nexus Video to an existing Nexus Screen installation:**
 ```bash
 git clone https://github.com/omarmunoz5371/Nexus-Video.git ~/nexus-video
-bash ~/nexus-video/deploy/install.sh
+sudo bash ~/nexus-video/deploy/public-install.sh
 ```
 
 See the [Nexus Video repository](https://github.com/omarmunoz5371/Nexus-Video) for custom pack
