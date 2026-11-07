@@ -109,27 +109,80 @@ Community reports of working or failing configurations are welcome via
 
 ## Installation
 
-See **[docs/INSTALLATION.md](docs/INSTALLATION.md)** for full step-by-step instructions.
-
-Quick summary:
+### One-command installation (recommended)
 
 ```bash
-# 1. Clone the repository
+curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash
+```
+
+This runs a hardware compatibility check, asks whether to also install **Nexus Video** (optional),
+then installs Nexus Screen and optionally the addon. No manual cloning or virtual-environment
+setup is required.
+
+**Non-interactive options:**
+
+```bash
+# Install only Nexus Screen (no addon prompt)
+curl -fsSL .../bootstrap.sh | bash -s -- --yes
+
+# Install Nexus Screen + Nexus Video addon
+curl -fsSL .../bootstrap.sh | bash -s -- --yes --with-video
+
+# Dry run: check compatibility and show plan, make no changes
+curl -fsSL .../bootstrap.sh | bash -s -- --dry-run
+```
+
+> **Note:** The bootstrap script uses `sudo` only for operations that require it (service
+> configuration, apt). Run it as your normal user, not as root.
+
+### Manual installation
+
+See **[docs/INSTALLATION.md](docs/INSTALLATION.md)** for full step-by-step instructions.
+
+```bash
+# 1. Clone
 git clone https://github.com/omarmunoz5371/Nexus-Screen.git ~/nexus-screen
-cd ~/nexus-screen
 
-# 2. Create the Python virtual environment
-python3 -m venv ~/nexus-screen-env --system-site-packages
+# 2. Dry run (checks everything, makes no changes)
+sudo ~/nexus-screen/deploy/install.sh
 
-# 3. Dry run (checks everything, makes no changes)
-sudo deploy/install.sh
-
-# 4. Install (auto-rollback on failure)
-sudo deploy/install.sh --confirm
+# 3. Install (auto-rollback on failure)
+sudo ~/nexus-screen/deploy/install.sh --confirm
 ```
 
 The installer stops and disables KlipperScreen if it is present — the KlipperScreen
 installation itself is not removed and can be restored with `deploy/rollback.sh`.
+
+---
+
+## Optional Addons
+
+### Nexus Video — Startup Animations
+
+[Nexus Video](https://github.com/omarmunoz5371/Nexus-Video) is an independent, optional addon
+that replaces the default static boot splash with animated video packs. It is **not required**
+for Nexus Screen to function.
+
+When Nexus Video is not installed, Nexus Screen displays an installation notice in the
+**Settings → Startup Video** screen rather than crashing.
+
+**Install via bootstrap (easiest):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --with-video
+```
+
+**Add Nexus Video to an existing Nexus Screen installation:**
+```bash
+git clone https://github.com/omarmunoz5371/Nexus-Video.git ~/nexus-video
+bash ~/nexus-video/deploy/install.sh
+```
+
+See the [Nexus Video repository](https://github.com/omarmunoz5371/Nexus-Video) for custom pack
+documentation, hardware requirements, and troubleshooting.
+
+### Nexus Sounds — Audio Notifications
+
+**Coming Soon — Not available in this release.**
 
 ---
 
@@ -148,18 +201,31 @@ primary_branch: main
 is_system_service: False
 ```
 
-You can then update Nexus Screen from the **Update Manager** panel in Mainsail or Fluidd.
-After updating, restart the service:
+If Nexus Video is installed, add its block separately:
+
+```ini
+[update_manager nexus-video]
+type: git_repo
+path: ~/nexus-video
+origin: https://github.com/omarmunoz5371/Nexus-Video.git
+primary_branch: main
+is_system_service: False
+managed_services: nexus-video
+```
+
+You can then update from the **Update Manager** panel in Mainsail or Fluidd.
+After updating Nexus Screen, restart the service:
 
 ```bash
 sudo systemctl restart nexus-screen
 ```
 
+Custom packs and your selected startup video are preserved across all updates.
+
 ### Manual update
 
 ```bash
-cd ~/nexus-screen
-git pull
+cd ~/nexus-screen && git pull
 sudo systemctl restart nexus-screen
 ```
 
