@@ -179,8 +179,8 @@ plays WAV notification sounds for printer events (startup, print start, print co
 and more). It is configured through the **Settings → Sounds** screen added in this release.
 
 ```bash
-git clone https://github.com/omarmunoz5371/Nexus-Sounds.git ~/nexus-sounds-src
-sudo bash ~/nexus-sounds-src/deploy/install.sh
+git clone https://github.com/omarmunoz5371/Nexus-Sounds.git ~/nexus-sounds
+sudo bash ~/nexus-sounds/deploy/install.sh
 ```
 
 When Nexus Sounds is not installed, the Sounds screen shows an installation notice
