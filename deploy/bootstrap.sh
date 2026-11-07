@@ -81,7 +81,7 @@ NS_DIR="${HOME_DIR}/${NS_DIR_NAME}"
 NV_DIR="${HOME_DIR}/${NV_DIR_NAME}"
 NS_INSTALL="${NS_DIR}/deploy/install.sh"
 NV_PREFLIGHT="${NV_DIR}/deploy/preflight.sh"
-NV_INSTALL="${NV_DIR}/deploy/install.sh"
+NV_INSTALL="${NV_DIR}/deploy/public-install.sh"
 
 # ── output helpers ────────────────────────────────────────────────────────────
 _bold()   { printf '\033[1m%s\033[0m\n' "$*"; }
@@ -379,7 +379,11 @@ if $NS_EXISTS && [ "$INSTALL_MODE" = "update" ]; then
   sudo -u "${TARGET_USER}" git -C "${NS_DIR}" pull --ff-only 2>&1 | _prefix "  git: "
 else
   if $NS_EXISTS && [ "$INSTALL_MODE" = "repair" ]; then
-    _info "Removing existing directory for repair reinstall..."
+    _info "Creating repair backup before removing ${NS_DIR}..."
+    _repair_backup="${HOME_DIR}/.nexus-screen-repair-$(date +%Y%m%d-%H%M%S)"
+    cp -a "${NS_DIR}" "${_repair_backup}"
+    _info "Backup saved to ${_repair_backup}"
+    _info "Removing ${NS_DIR} for repair reinstall..."
     rm -rf "${NS_DIR}"
   fi
   _info "Cloning Nexus Screen..."
@@ -446,7 +450,7 @@ if $INSTALL_NV; then
     _info "Running Nexus Video preflight..."
     if sudo -u "${TARGET_USER}" bash "${NV_PREFLIGHT}"; then
       _info "Running Nexus Video installer..."
-      if sudo -u "${TARGET_USER}" bash "${NV_INSTALL}"; then
+      if sudo bash "${NV_INSTALL}"; then
         NV_INSTALLED=true
         _green "Nexus Video installed."
       else
