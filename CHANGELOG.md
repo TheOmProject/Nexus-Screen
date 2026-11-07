@@ -7,6 +7,29 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.2.0-beta.6] — 2026-11-07
+
+### Nexus Sounds UI Integration
+
+#### Added
+- `nexus/screens/sounds.py`: SoundsScreen, EventSoundsScreen, EventSoundScreen,
+  SoundPacksScreen, PackSoundsScreen — full Settings → Sounds panel
+- `nexus/app.py`: SoundsScreen registered in the screen registry
+- Settings → Sounds tile now navigates to the Sounds panel
+
+#### Sounds UI features
+- Main screen: master enable/mute toggle cards, volume row, Event Sounds and Sound Packs navigation
+- Event Sounds: seven-event scrollable list with icons, filenames, chevrons; no ON/OFF switches
+- Event Sound selector: file browser, Enable toggle, Preview/Apply/Cancel
+- Sound Packs: two-column browser with pack metadata, Browse Sounds, Set as Active
+- Graceful degradation: shows installation notice when Nexus Sounds is not installed
+
+#### Documentation
+- README updated: Nexus Sounds section with installation instructions
+- docs/RELEASE-NOTES-v0.2.0-beta.6.md added
+
+---
+
 ## [v0.2.0-beta.4] — 2026-11-01
 
 ### Voron 2.4 Physical Validation + Python Preflight Fix

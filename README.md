@@ -7,7 +7,7 @@ Nexus Screen is an independent, touch-optimized UI for printers running
 It runs directly on the framebuffer (no desktop environment required) and is
 designed for embedded 800×480 DSI touchscreen panels on Raspberry Pi.
 
-**Status: Public Beta — v0.2.0-beta.5**  
+**Status: Public Beta — v0.2.0-beta.6**  
 See [Beta Limitations](#beta-limitations) before installing.
 
 ---
@@ -174,7 +174,17 @@ documentation, hardware requirements, and troubleshooting.
 
 ### Nexus Sounds — Audio Notifications
 
-**Coming Soon — Not available in this release.**
+[Nexus Sounds](https://github.com/omarmunoz5371/Nexus-Sounds) is an **optional add-on** that
+plays WAV notification sounds for printer events (startup, print start, print complete, print error,
+and more). It is configured through the **Settings → Sounds** screen added in this release.
+
+```bash
+git clone https://github.com/omarmunoz5371/Nexus-Sounds.git ~/nexus-sounds-src
+sudo bash ~/nexus-sounds-src/deploy/install.sh
+```
+
+When Nexus Sounds is not installed, the Sounds screen shows an installation notice
+rather than crashing. Nexus Screen functions normally without it.
 
 ---
 
@@ -253,7 +263,7 @@ journalctl -u nexus-screen -b
 
 ## Beta Limitations
 
-This is a **public beta**. The following are known limitations in v0.2.0-beta.5:
+This is a **public beta**. The following are known limitations in v0.2.0-beta.6:
 
 - **Physically verified on three hardware configurations** — see [Hardware Compatibility](#hardware-compatibility)
 - **Minimum supported display resolution is 480×320** — all menus, buttons and popups are verified touch-accessible at 480×320 and above; 800×480 is the reference resolution and delivers the best visual density
