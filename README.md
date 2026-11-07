@@ -7,7 +7,7 @@ Nexus Screen is an independent, touch-optimized UI for printers running
 It runs directly on the framebuffer (no desktop environment required) and is
 designed for embedded 800×480 DSI touchscreen panels on Raspberry Pi.
 
-**Status: Public Beta — v0.2.0-beta.4**  
+**Status: Public Beta — v0.2.0-beta.5**  
 See [Beta Limitations](#beta-limitations) before installing.
 
 ---
@@ -253,9 +253,9 @@ journalctl -u nexus-screen -b
 
 ## Beta Limitations
 
-This is a **public beta**. The following are known limitations in v0.2.0-beta.4:
+This is a **public beta**. The following are known limitations in v0.2.0-beta.5:
 
-- **Tested on two hardware configurations** — see [Supported Hardware](#supported-hardware)
+- **Physically verified on three hardware configurations** — see [Hardware Compatibility](#hardware-compatibility)
 - **Minimum supported display resolution is 480×320** — all menus, buttons and popups are verified touch-accessible at 480×320 and above; 800×480 is the reference resolution and delivers the best visual density
 - **Printer commands require explicit opt-in** — enabled separately with `deploy/commands.sh enable`
 - **Boot splash requires separate media build** — see `docs/SPLASH.md`; the splash media is not
