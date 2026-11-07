@@ -45,26 +45,24 @@ See [Beta Limitations](#beta-limitations) before installing.
 
 ## Hardware Compatibility
 
-| Hardware | Status | Notes |
-|---|---|---|
-| Raspberry Pi 4 (2 GB), 800×480 RGB565 DSI, Debian 12 | **PHYSICALLY TESTED** | Reference configuration |
-| Raspberry Pi 4 (4 GB), Voron 2.4, 800×480 BGRA8888, Debian 12 | **PHYSICALLY TESTED** | 32-bit framebuffer path, v0.2.0-beta.4 |
-| BigTreeTech CB1, 480×320 RGB565 DSI, CB1 OS | **PHYSICALLY TESTED** | Minimum-resolution path, v0.2.0-beta.2 |
-| Raspberry Pi 3 | NOT TESTED | May work; preflight blocks 32-bit armv7l; 64-bit OS required |
-| Raspberry Pi 5 | NOT TESTED | Community reports welcome |
-| Raspberry Pi Zero 2 W | NOT TESTED | RAM may be insufficient (512 MB, min 900 MB) |
-| HDMI displays | NOT TESTED | `/dev/fb0` must exist; depends on driver |
-| SPI displays | NOT TESTED | `/dev/fb0` required; most SPI drivers do not expose one |
-| Debian 11 Bullseye | **NOT SUPPORTED** | Blocked by installer; `python3-pyqt6` not in Bullseye apt repo |
-| Ubuntu / other Debian-based | SIMULATED / CODE-VALIDATED | Preflight accepts; not physically tested |
+| Hardware | Nexus Screen | Nexus Video | Notes |
+|---|---|---|---|
+| Raspberry Pi 4 (2 GB), 800×480 RGB565, Debian 12 | **PHYSICALLY VERIFIED** | NOT TESTED | Reference configuration; NS runtime + clean install verified |
+| Raspberry Pi 4 (4 GB), Voron 2.4, 800×480 BGRA8888 | **PHYSICALLY VERIFIED** | NOT TESTED | 32-bit framebuffer path, v0.2.0-beta.4 |
+| BigTreeTech CB1, 480×320 RGB565 | **PHYSICALLY VERIFIED** (runtime) | NOT TESTED | Real hardware bug found + fixed at v0.2.0-beta.2; clean install not separately verified |
+| Raspberry Pi 3 | NOT TESTED | NOT TESTED | 64-bit OS required; preflight accepts |
+| Raspberry Pi 5 | NOT TESTED | NOT TESTED | Community reports welcome |
+| Raspberry Pi Zero 2 W | NOT TESTED | NOT TESTED | 512 MB RAM below installer minimum (900 MB) |
+| HDMI displays | NOT TESTED | NOT TESTED | `/dev/fb0` must exist; depends on driver |
+| SPI displays | NOT TESTED | NOT TESTED | `/dev/fb0` required; most SPI drivers don't expose one |
+| Debian 11 Bullseye | **NOT SUPPORTED** | **NOT SUPPORTED** | Installer blocks; `python3-pyqt6` not in Bullseye apt |
+| 32-bit ARM (armv7l) | **NOT SUPPORTED** | **NOT SUPPORTED** | Installer blocks; 64-bit aarch64 required |
 
-**Status key:**
-- **PHYSICALLY TESTED** — installed and run on real hardware, confirmed working
-- **SIMULATED / CODE-VALIDATED** — preflight logic verified; install path not run on real hardware
-- **NOT TESTED** — unknown; may work or may not; community reports welcome
-- **NOT SUPPORTED** — installer blocks; will not work
+**PHYSICALLY VERIFIED** = installed and confirmed working on real hardware with traceable evidence (not just code analysis).
+**NOT TESTED** = may work but no hardware evidence; community reports welcome.
+**NOT SUPPORTED** = installer explicitly blocks.
 
-See **[docs/HARDWARE-COMPATIBILITY.md](docs/HARDWARE-COMPATIBILITY.md)** for the full matrix.
+See **[docs/HARDWARE-COMPATIBILITY.md](docs/HARDWARE-COMPATIBILITY.md)** for full per-item evidence detail.
 
 ### Display Resolution
 

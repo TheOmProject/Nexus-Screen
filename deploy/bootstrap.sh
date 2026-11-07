@@ -76,7 +76,8 @@ elif [ "$(id -u)" = "0" ]; then
 else
   TARGET_USER="$(id -un)"
 fi
-HOME_DIR="$(eval echo "~${TARGET_USER}")"
+HOME_DIR="$(getent passwd "${TARGET_USER}" | cut -d: -f6)"
+[ -n "${HOME_DIR}" ] || { printf 'ERROR: Cannot determine home directory for %s\n' "${TARGET_USER}" >&2; exit 1; }
 NS_DIR="${HOME_DIR}/${NS_DIR_NAME}"
 NV_DIR="${HOME_DIR}/${NV_DIR_NAME}"
 NS_INSTALL="${NS_DIR}/deploy/install.sh"

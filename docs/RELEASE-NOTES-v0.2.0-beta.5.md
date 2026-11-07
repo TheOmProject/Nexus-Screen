@@ -81,10 +81,10 @@ sudo ~/nexus-screen/deploy/rollback.sh --confirm
 
 See [docs/HARDWARE-COMPATIBILITY.md](HARDWARE-COMPATIBILITY.md) for the full matrix.
 
-Physically tested configurations:
-- Raspberry Pi 4 (2 GB), 800×480 RGB565 DSI, Debian 12 Bookworm
-- Raspberry Pi 4 (4 GB) on Voron 2.4, 800×480 BGRA8888, Raspberry Pi OS Bookworm
-- BigTreeTech CB1, 480×320 RGB565 DSI, CB1 OS (Bookworm-based)
+Physically verified configurations:
+- **Raspberry Pi 4 (2 GB), 800×480 RGB565, Debian 12** — runtime + clean install + touch input verified
+- **Raspberry Pi 4 (4 GB) on Voron 2.4, 800×480 BGRA8888** — runtime + clean install verified (v0.2.0-beta.4)
+- **BigTreeTech CB1, 480×320 RGB565** — runtime physically verified (real button layout bug found and fixed); clean install not separately confirmed
 
 ---
 
