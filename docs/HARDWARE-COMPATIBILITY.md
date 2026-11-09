@@ -103,4 +103,4 @@ cat /sys/class/graphics/fb0/virtual_size      # W,H
 
 If you test on hardware not listed here, please file a report:
 
-[Open a Hardware Compatibility Report](https://github.com/omarmunoz5371/Nexus-Screen/issues/new?template=hardware_report.yml)
+[Open a Hardware Compatibility Report](https://github.com/TheOmProject/Nexus-Screen/issues/new?template=hardware_report.yml)

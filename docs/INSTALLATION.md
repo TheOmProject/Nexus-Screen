@@ -7,7 +7,7 @@ This guide covers a fresh installation of Nexus Screen on a compatible Raspberry
 ## One-command installation (recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash
 ```
 
 The bootstrap installer checks compatibility, installs missing dependencies, installs
@@ -19,7 +19,7 @@ review before running:
 
 ```bash
 # Download and inspect first
-curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh \
+curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh \
   -o /tmp/nexus-bootstrap.sh
 less /tmp/nexus-bootstrap.sh
 # Then run after review:
@@ -27,7 +27,7 @@ bash /tmp/nexus-bootstrap.sh
 ```
 
 The installer source is public at
-[github.com/omarmunoz5371/Nexus-Screen/blob/main/deploy/bootstrap.sh](https://github.com/omarmunoz5371/Nexus-Screen/blob/main/deploy/bootstrap.sh).
+[github.com/TheOmProject/Nexus-Screen/blob/main/deploy/bootstrap.sh](https://github.com/TheOmProject/Nexus-Screen/blob/main/deploy/bootstrap.sh).
 It does not use a hidden installation path; all operations are shown in the terminal as they run.
 
 For a manual step-by-step installation without the bootstrap script, continue with this guide.
@@ -112,7 +112,7 @@ and the health check will skip the screen-content check if it is absent.
 ## Step 2 — Clone the Repository
 
 ```bash
-git clone https://github.com/omarmunoz5371/Nexus-Screen.git ~/nexus-screen
+git clone https://github.com/TheOmProject/Nexus-Screen.git ~/nexus-screen
 ```
 
 ---

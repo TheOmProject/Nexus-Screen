@@ -309,8 +309,8 @@ Raspberry Pi 4 with a 7-inch 800×480 DSI touchscreen running Klipper and Moonra
 
 ---
 
-[v0.2.0-beta.4]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.4
-[v0.2.0-beta.3]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.3
-[v0.2.0-beta.2]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.2
-[v0.2.0-beta.1]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.2.0-beta.1
-[v0.1.0-beta.1]: https://github.com/omarmunoz5371/Nexus-Screen/releases/tag/v0.1.0-beta.1
+[v0.2.0-beta.4]: https://github.com/TheOmProject/Nexus-Screen/releases/tag/v0.2.0-beta.4
+[v0.2.0-beta.3]: https://github.com/TheOmProject/Nexus-Screen/releases/tag/v0.2.0-beta.3
+[v0.2.0-beta.2]: https://github.com/TheOmProject/Nexus-Screen/releases/tag/v0.2.0-beta.2
+[v0.2.0-beta.1]: https://github.com/TheOmProject/Nexus-Screen/releases/tag/v0.2.0-beta.1
+[v0.1.0-beta.1]: https://github.com/TheOmProject/Nexus-Screen/releases/tag/v0.1.0-beta.1

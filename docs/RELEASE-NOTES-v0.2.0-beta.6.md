@@ -7,7 +7,7 @@
 ### Nexus Sounds UI integration — Settings → Sounds
 
 The **Settings → Sounds** screen is now included. It provides full control of the optional
-[Nexus Sounds](https://github.com/omarmunoz5371/Nexus-Sounds) add-on from the touchscreen.
+[Nexus Sounds](https://github.com/TheOmProject/Nexus-Sounds) add-on from the touchscreen.
 
 When Nexus Sounds is not installed, the screen shows an installation notice rather than crashing.
 No configuration is required; the screen degrades gracefully.
@@ -33,7 +33,7 @@ sudo systemctl restart nexus-screen
 To add Nexus Sounds:
 
 ```bash
-git clone https://github.com/omarmunoz5371/Nexus-Sounds.git ~/nexus-sounds-src
+git clone https://github.com/TheOmProject/Nexus-Sounds.git ~/nexus-sounds-src
 sudo bash ~/nexus-sounds-src/deploy/install.sh
 ```
 
@@ -77,7 +77,7 @@ Physically verified in this release:
 
 ## Bug Reports
 
-[Open a Bug Report](https://github.com/omarmunoz5371/Nexus-Screen/issues/new?template=bug_report.yml)
+[Open a Bug Report](https://github.com/TheOmProject/Nexus-Screen/issues/new?template=bug_report.yml)
 
 Attach the output of:
 

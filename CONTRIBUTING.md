@@ -14,7 +14,7 @@ and code.
    ```
    This collects service logs, printer state, and version information without capturing credentials.
 
-2. [Open a bug report](https://github.com/omarmunoz5371/Nexus-Screen/issues/new?template=bug_report.yml)
+2. [Open a bug report](https://github.com/TheOmProject/Nexus-Screen/issues/new?template=bug_report.yml)
    and attach the resulting `logs/bug-*.tar.gz` file.
 
 3. Include:
@@ -27,7 +27,7 @@ and code.
 
 ## Requesting Features
 
-[Open a feature request](https://github.com/omarmunoz5371/Nexus-Screen/issues/new?template=feature_request.yml)
+[Open a feature request](https://github.com/TheOmProject/Nexus-Screen/issues/new?template=feature_request.yml)
 describing what you want and why. Include:
 
 - The problem you are trying to solve

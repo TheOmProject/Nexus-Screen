@@ -2,7 +2,7 @@
 # Nexus Screen + Nexus Video unified bootstrap installer.
 #
 # One-command installation:
-#   curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash
 #
 # Or with explicit options:
 #   bash bootstrap.sh [--yes] [--with-video] [--without-video] [--dry-run] [--repair] [--uninstall]
@@ -33,8 +33,8 @@
 set -euo pipefail
 
 # ── constants ─────────────────────────────────────────────────────────────────
-NS_REPO="https://github.com/omarmunoz5371/Nexus-Screen.git"
-NV_REPO="https://github.com/omarmunoz5371/Nexus-Video.git"
+NS_REPO="https://github.com/TheOmProject/Nexus-Screen.git"
+NV_REPO="https://github.com/TheOmProject/Nexus-Video.git"
 NS_DIR_NAME="nexus-screen"
 NV_DIR_NAME="nexus-video"
 NS_BRANCH="main"

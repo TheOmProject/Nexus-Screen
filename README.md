@@ -89,7 +89,7 @@ cat /sys/class/graphics/fb0/bits_per_pixel
 ```
 
 Community reports of working or failing configurations are welcome via
-[GitHub Issues](https://github.com/omarmunoz5371/Nexus-Screen/issues).
+[GitHub Issues](https://github.com/TheOmProject/Nexus-Screen/issues).
 
 ---
 
@@ -116,7 +116,7 @@ Community reports of working or failing configurations are welcome via
 ## Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash
 ```
 
 That's it. The installer will:
@@ -133,13 +133,13 @@ That's it. The installer will:
 
 ```bash
 # Nexus Screen only
-curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --yes
+curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --yes
 
 # Nexus Screen + Nexus Video
-curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --yes --with-video
+curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --yes --with-video
 
 # Compatibility check only — no changes made
-curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --dry-run
 ```
 
 For manual installation, repair, rollback, and advanced options see
@@ -151,7 +151,7 @@ For manual installation, repair, rollback, and advanced options see
 
 ### Nexus Video — Startup Animations
 
-[Nexus Video](https://github.com/omarmunoz5371/Nexus-Video) is an independent, optional addon
+[Nexus Video](https://github.com/TheOmProject/Nexus-Video) is an independent, optional addon
 that replaces the default static boot splash with animated video packs. It is **not required**
 for Nexus Screen to function.
 
@@ -160,26 +160,26 @@ When Nexus Video is not installed, Nexus Screen displays an installation notice 
 
 **Install via bootstrap (easiest):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --with-video
+curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --with-video
 ```
 
 **Add Nexus Video to an existing Nexus Screen installation:**
 ```bash
-git clone https://github.com/omarmunoz5371/Nexus-Video.git ~/nexus-video
+git clone https://github.com/TheOmProject/Nexus-Video.git ~/nexus-video
 sudo bash ~/nexus-video/deploy/public-install.sh
 ```
 
-See the [Nexus Video repository](https://github.com/omarmunoz5371/Nexus-Video) for custom pack
+See the [Nexus Video repository](https://github.com/TheOmProject/Nexus-Video) for custom pack
 documentation, hardware requirements, and troubleshooting.
 
 ### Nexus Sounds — Audio Notifications
 
-[Nexus Sounds](https://github.com/omarmunoz5371/Nexus-Sounds) is an **optional add-on** that
+[Nexus Sounds](https://github.com/TheOmProject/Nexus-Sounds) is an **optional add-on** that
 plays WAV notification sounds for printer events (startup, print start, print complete, print error,
 and more). It is configured through the **Settings → Sounds** screen added in this release.
 
 ```bash
-git clone https://github.com/omarmunoz5371/Nexus-Sounds.git ~/nexus-sounds
+git clone https://github.com/TheOmProject/Nexus-Sounds.git ~/nexus-sounds
 sudo bash ~/nexus-sounds/deploy/install.sh
 ```
 
@@ -198,7 +198,7 @@ Add the following to your `moonraker.conf`, then restart Moonraker:
 [update_manager nexus-screen]
 type: git_repo
 path: ~/nexus-screen
-origin: https://github.com/omarmunoz5371/Nexus-Screen.git
+origin: https://github.com/TheOmProject/Nexus-Screen.git
 primary_branch: main
 is_system_service: False
 ```
@@ -209,7 +209,7 @@ If Nexus Video is installed, add its block separately:
 [update_manager nexus-video]
 type: git_repo
 path: ~/nexus-video
-origin: https://github.com/omarmunoz5371/Nexus-Video.git
+origin: https://github.com/TheOmProject/Nexus-Video.git
 primary_branch: main
 is_system_service: False
 managed_services: nexus-video
@@ -278,8 +278,8 @@ This is a **public beta**. The following are known limitations in v0.2.0-beta.6:
 
 ## Bug Reports and Contributing
 
-- **Report a bug:** [Open an issue](https://github.com/omarmunoz5371/Nexus-Screen/issues/new?template=bug_report.yml)
-- **Request a feature:** [Open an issue](https://github.com/omarmunoz5371/Nexus-Screen/issues/new?template=feature_request.yml)
+- **Report a bug:** [Open an issue](https://github.com/TheOmProject/Nexus-Screen/issues/new?template=bug_report.yml)
+- **Request a feature:** [Open an issue](https://github.com/TheOmProject/Nexus-Screen/issues/new?template=feature_request.yml)
 - **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 Include the output of `scripts/bug-report.sh "description of the problem"` with your bug report.

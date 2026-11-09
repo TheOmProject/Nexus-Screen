@@ -8,7 +8,7 @@ body:
         Thank you for helping expand hardware compatibility knowledge.
 
         This form is for reporting a hardware configuration that is **not yet listed** in
-        [docs/HARDWARE-COMPATIBILITY.md](https://github.com/omarmunoz5371/Nexus-Screen/blob/main/docs/HARDWARE-COMPATIBILITY.md),
+        [docs/HARDWARE-COMPATIBILITY.md](https://github.com/TheOmProject/Nexus-Screen/blob/main/docs/HARDWARE-COMPATIBILITY.md),
         or for updating a "NOT TESTED" entry with a confirmed result.
 
   - type: dropdown

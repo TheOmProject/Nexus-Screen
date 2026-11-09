@@ -13,7 +13,7 @@ Add this block to your `moonraker.conf` (usually at `~/printer_data/config/moonr
 [update_manager nexus-screen]
 type: git_repo
 path: ~/nexus-screen
-origin: https://github.com/omarmunoz5371/Nexus-Screen.git
+origin: https://github.com/TheOmProject/Nexus-Screen.git
 primary_branch: main
 is_system_service: False
 ```

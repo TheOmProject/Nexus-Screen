@@ -135,7 +135,7 @@ sudo systemctl enable --now KlipperScreen
 
 This creates `logs/bug-<timestamp>.tar.gz` with service journals, printer state, and version
 information. Credentials are automatically scrubbed. Attach this file to your
-[GitHub issue](https://github.com/omarmunoz5371/Nexus-Screen/issues).
+[GitHub issue](https://github.com/TheOmProject/Nexus-Screen/issues).
 
 ---
 

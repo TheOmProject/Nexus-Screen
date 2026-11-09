@@ -9,7 +9,7 @@
 Nexus Screen now installs with a single command that handles everything:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/omarmunoz5371/Nexus-Screen/main/deploy/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash
 ```
 
 The bootstrap installer (`deploy/bootstrap.sh`):
@@ -88,7 +88,7 @@ Physically verified configurations:
 
 ## Bug Reports
 
-[Open a Bug Report](https://github.com/omarmunoz5371/Nexus-Screen/issues/new?template=bug_report.yml)
+[Open a Bug Report](https://github.com/TheOmProject/Nexus-Screen/issues/new?template=bug_report.yml)
 
 Attach the output of:
 ```bash
