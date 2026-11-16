@@ -44,8 +44,8 @@ class SettingsPage(QWidget):
             t = ActionTile(icon, title, sub, parent=self)
             t.clicked.connect(lambda _=False, k=key: self.open_screen.emit(k))
             self.tiles[key] = t
-        place_buttons([self.tiles[k] for k, *_ in SETTINGS], QRectF(cx(8), sy(82), cx(704), sy(270)), 4, 0)
-        place_buttons([self.tiles[k] for k, *_ in SUPPORT], QRectF(cx(8), sy(390), cx(704), sy(90)), 4, 0)
+        place_buttons([self.tiles[k] for k, *_ in SETTINGS], QRectF(cx(8), sy(82), cx(704), sy(240)), 4, 0)
+        place_buttons([self.tiles[k] for k, *_ in SUPPORT], QRectF(cx(8), sy(358), cx(704), sy(72)), 4, 0)
 
     def set_data(self, data):
         pass
@@ -60,7 +60,7 @@ class SettingsPage(QWidget):
         p.setPen(theme.DIM)
         p.drawText(QRectF(sx(15), sy(37), sx(500), sy(18)), Qt.AlignmentFlag.AlignVCenter, "Configure screen, printer and system settings")
         p.setFont(theme.font(theme.CAPS, QFont.Weight.DemiBold, 0.6))
-        for y, label in ((sy(64), "SETTINGS"), (sy(372), "SUPPORT")):
+        for y, label in ((sy(64), "SETTINGS"), (sy(340), "SUPPORT")):
             p.drawText(QRectF(sx(15), y, sx(300), sy(18)), Qt.AlignmentFlag.AlignVCenter, label)
         p.end()
 
