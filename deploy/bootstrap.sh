@@ -581,14 +581,17 @@ if $INSTALL_NSO; then
     command -v aplay &>/dev/null    || _NSO_APT="${_NSO_APT:+${_NSO_APT} }alsa-utils"
     command -v rsync &>/dev/null    || _NSO_APT="${_NSO_APT:+${_NSO_APT} }rsync"
     python3 -c "import websockets" 2>/dev/null || _NSO_APT="${_NSO_APT:+${_NSO_APT} }python3-websockets"
-    if [ -n "${_NSO_APT}" ]; then
+    if [ -n "${_NSO_APT}" ] && ! $OPT_DRY_RUN; then
       _info "Installing Nexus Sounds dependencies: ${_NSO_APT}"
       # shellcheck disable=SC2086
       sudo apt-get install -y ${_NSO_APT}
     fi
 
     _info "Running Nexus Sounds installer..."
-    if sudo bash "${NSO_INSTALL}"; then
+    _NSO_INSTALL_FLAGS="--yes"
+    $OPT_DRY_RUN && _NSO_INSTALL_FLAGS="${_NSO_INSTALL_FLAGS} --dry-run"
+    # shellcheck disable=SC2086
+    if sudo bash "${NSO_INSTALL}" ${_NSO_INSTALL_FLAGS}; then
       NSO_INSTALLED=true
       _green "Nexus Sounds installed."
     else
