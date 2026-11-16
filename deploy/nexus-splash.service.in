@@ -3,7 +3,7 @@
 # Placeholders: @USER@ @HOME@ @REPO@
 [Unit]
 Description=Nexus Screen boot splash
-Documentation=https://github.com/omarmunoz5371/Nexus-Screen
+Documentation=https://github.com/TheOmProject/Nexus-Screen
 DefaultDependencies=no
 After=local-fs.target systemd-tmpfiles-setup.service
 # Start before Nexus Screen; Nexus Screen waits for the handover signal

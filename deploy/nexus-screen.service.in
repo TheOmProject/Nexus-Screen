@@ -3,7 +3,7 @@
 # Placeholders: @USER@ @HOME@ @REPO@
 [Unit]
 Description=Nexus Screen (PyQt6 touchscreen interface)
-Documentation=https://github.com/omarmunoz5371/Nexus-Screen
+Documentation=https://github.com/TheOmProject/Nexus-Screen
 After=moonraker.service systemd-user-sessions.service
 Wants=moonraker.service
 # Never run two display clients at the same time
