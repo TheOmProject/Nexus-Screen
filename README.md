@@ -178,9 +178,20 @@ documentation, hardware requirements, and troubleshooting.
 plays WAV notification sounds for printer events (startup, print start, print complete, print error,
 and more). It is configured through the **Settings → Sounds** screen added in this release.
 
+**Install via bootstrap (easiest):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --with-sounds
+```
+
+Or install all three addons together:
+```bash
+curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --with-sounds --with-video
+```
+
+**Standalone — add to an existing Nexus Screen installation:**
 ```bash
 git clone https://github.com/TheOmProject/Nexus-Sounds.git ~/nexus-sounds
-sudo bash ~/nexus-sounds/deploy/install.sh
+bash ~/nexus-sounds/deploy/public-install.sh
 ```
 
 When Nexus Sounds is not installed, the Sounds screen shows an installation notice

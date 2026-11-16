@@ -1,27 +1,30 @@
 #!/usr/bin/env bash
-# Nexus Screen + Nexus Video unified bootstrap installer.
+# Nexus Screen unified bootstrap installer — Screen, Sounds, and Video in one command.
 #
 # One-command installation:
 #   curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash
 #
 # Or with explicit options:
-#   bash bootstrap.sh [--yes] [--with-video] [--without-video] [--dry-run] [--repair] [--uninstall]
+#   bash bootstrap.sh [--yes] [--with-video] [--without-video] [--with-sounds] [--without-sounds] [--dry-run] [--repair] [--uninstall]
 #
 # Flags:
-#   --yes             Non-interactive: use safe defaults (Nexus Video: No)
+#   --yes             Non-interactive: use safe defaults (Nexus Video: No, Nexus Sounds: No)
 #   --with-video      Non-interactive: install Nexus Video addon
 #   --without-video   Non-interactive: skip Nexus Video addon
+#   --with-sounds     Non-interactive: install Nexus Sounds addon
+#   --without-sounds  Non-interactive: skip Nexus Sounds addon
 #   --dry-run         Run all checks and show plan; make no changes
 #   --repair          Reinstall over an existing installation
-#   --uninstall       Remove Nexus Screen (and Nexus Video if present)
+#   --uninstall       Remove Nexus Screen (and addons if present)
 #
 # This script:
 #   1. Runs hardware preflight (blocks on incompatible hardware/OS)
 #   2. Auto-installs missing apt packages (PyQt6, git, etc.) after confirmation
 #   3. Installs Nexus Screen
 #   4. Offers Nexus Video as an optional addon (after NS install)
-#   5. Registers Moonraker Update Manager entries
-#   6. Verifies installed services
+#   5. Offers Nexus Sounds as an optional addon (after NS install)
+#   6. Registers Moonraker Update Manager entries
+#   7. Verifies installed services
 #
 # Safety:
 #   - Never modifies Klipper, Moonraker, or printer.cfg
@@ -35,16 +38,20 @@ set -euo pipefail
 # ── constants ─────────────────────────────────────────────────────────────────
 NS_REPO="https://github.com/TheOmProject/Nexus-Screen.git"
 NV_REPO="https://github.com/TheOmProject/Nexus-Video.git"
+NSO_REPO="https://github.com/TheOmProject/Nexus-Sounds.git"
 NS_DIR_NAME="nexus-screen"
 NV_DIR_NAME="nexus-video"
+NSO_DIR_NAME="nexus-sounds"
 NS_BRANCH="main"
 NV_BRANCH="main"
+NSO_BRANCH="main"
 MIN_W=480
 MIN_H=320
 
 # ── argument parsing ──────────────────────────────────────────────────────────
 OPT_YES=false
 OPT_WITH_VIDEO=""        # "yes", "no", or "" (ask interactively after NS installs)
+OPT_WITH_SOUNDS=""       # "yes", "no", or "" (ask interactively after NS installs)
 OPT_DRY_RUN=false
 OPT_REPAIR=false
 OPT_UNINSTALL=false
@@ -54,11 +61,13 @@ for arg in "$@"; do
     --yes)            OPT_YES=true ;;
     --with-video)     OPT_WITH_VIDEO="yes" ;;
     --without-video)  OPT_WITH_VIDEO="no" ;;
+    --with-sounds)    OPT_WITH_SOUNDS="yes" ;;
+    --without-sounds) OPT_WITH_SOUNDS="no" ;;
     --dry-run)        OPT_DRY_RUN=true ;;
     --repair)         OPT_REPAIR=true ;;
     --uninstall)      OPT_UNINSTALL=true ;;
     --help|-h)
-      printf 'Usage: %s [--yes] [--with-video|--without-video] [--dry-run] [--repair] [--uninstall]\n' "$0"
+      printf 'Usage: %s [--yes] [--with-video|--without-video] [--with-sounds|--without-sounds] [--dry-run] [--repair] [--uninstall]\n' "$0"
       exit 0 ;;
     *)
       printf 'Unknown option: %s  (run %s --help for usage)\n' "$arg" "$0" >&2
@@ -80,9 +89,11 @@ HOME_DIR="$(getent passwd "${TARGET_USER}" | cut -d: -f6)"
 [ -n "${HOME_DIR}" ] || { printf 'ERROR: Cannot determine home directory for %s\n' "${TARGET_USER}" >&2; exit 1; }
 NS_DIR="${HOME_DIR}/${NS_DIR_NAME}"
 NV_DIR="${HOME_DIR}/${NV_DIR_NAME}"
+NSO_DIR="${HOME_DIR}/${NSO_DIR_NAME}"
 NS_INSTALL="${NS_DIR}/deploy/install.sh"
 NV_PREFLIGHT="${NV_DIR}/deploy/preflight.sh"
 NV_INSTALL="${NV_DIR}/deploy/public-install.sh"
+NSO_INSTALL="${NSO_DIR}/deploy/public-install.sh"
 
 # ── output helpers ────────────────────────────────────────────────────────────
 _bold()   { printf '\033[1m%s\033[0m\n' "$*"; }
@@ -305,8 +316,10 @@ fi
 # ── detect existing installation ──────────────────────────────────────────────
 NS_EXISTS=false
 NV_EXISTS=false
+NSO_EXISTS=false
 [ -d "${NS_DIR}" ] && NS_EXISTS=true
 [ -d "${NV_DIR}" ] && NV_EXISTS=true
+[ -d "${NSO_DIR}" ] && NSO_EXISTS=true
 
 INSTALL_MODE="fresh"
 if $NS_EXISTS && $OPT_REPAIR; then
@@ -330,6 +343,12 @@ if $OPT_UNINSTALL; then
       bash "${NV_DIR}/deploy/uninstall.sh"
     fi
   fi
+  if $NSO_EXISTS; then
+    _info "Running Nexus Sounds uninstall..."
+    if [ -x "${NSO_DIR}/deploy/uninstall.sh" ]; then
+      bash "${NSO_DIR}/deploy/uninstall.sh"
+    fi
+  fi
   _green "Uninstall complete."
   exit 0
 fi
@@ -350,7 +369,7 @@ echo "  │  What will happen                                   │"
 echo "  │                                                     │"
 printf "  │  ✓  %-47s│\n" "Nexus Screen → ${NS_DIR}"
 echo "  │  ?  Nexus Video → will ask after installation       │"
-echo "  │  ·  Nexus Sounds → Coming Soon                      │"
+echo "  │  ?  Nexus Sounds → will ask after installation     │"
 if $OPT_DRY_RUN; then
 echo "  │                                                     │"
 printf "  │  %-51s│\n" "DRY RUN — no changes will be made"
@@ -422,7 +441,30 @@ else
     *) INSTALL_NV=false ;;
   esac
   echo ""
-  printf '  Nexus Sounds — Coming Soon (not available in this release)\n'
+fi
+
+# ── Nexus Sounds addon (prompt AFTER Nexus Screen installs) ──────────────────
+INSTALL_NSO=false
+if [ -n "${OPT_WITH_SOUNDS}" ]; then
+  [ "${OPT_WITH_SOUNDS}" = "yes" ] && INSTALL_NSO=true
+elif $OPT_YES; then
+  INSTALL_NSO=false
+else
+  echo "  ┌─────────────────────────────────────────────────────┐"
+  echo "  │  Optional Addon: Nexus Sounds                       │"
+  echo "  │                                                     │"
+  echo "  │  Audio notifications for print events.             │"
+  echo "  │  Custom WAV sounds: drop files in packs/custom/.   │"
+  echo "  │  Runs as a user-mode systemd service.              │"
+  echo "  │                                                     │"
+  echo "  │  Can also be added later (see README).              │"
+  echo "  └─────────────────────────────────────────────────────┘"
+  echo ""
+  _nso_ans="$(_ask "  Install Nexus Sounds? [y/N] " "n")"
+  case "${_nso_ans}" in
+    y|Y|yes|Yes|YES) INSTALL_NSO=true ;;
+    *) INSTALL_NSO=false ;;
+  esac
   echo ""
 fi
 
@@ -474,6 +516,49 @@ if $INSTALL_NV; then
   fi
 fi
 
+# ── optional: install Nexus Sounds ───────────────────────────────────────────
+NSO_INSTALLED=false
+NSO_FAIL_MSG=""
+
+if $INSTALL_NSO; then
+  _step "Nexus Sounds (optional addon)"
+
+  NSO_CLONE_OK=false
+  if $NSO_EXISTS && [ -d "${NSO_DIR}/.git" ]; then
+    _info "Updating Nexus Sounds..."
+    if sudo -u "${TARGET_USER}" git -C "${NSO_DIR}" pull --ff-only 2>&1 | _prefix "  git: "; then
+      NSO_CLONE_OK=true
+    fi
+  else
+    _info "Cloning Nexus Sounds..."
+    if sudo -u "${TARGET_USER}" git clone --depth 1 --branch "${NSO_BRANCH}" \
+        "${NSO_REPO}" "${NSO_DIR}" 2>&1 | _prefix "  git: "; then
+      NSO_CLONE_OK=true
+    fi
+  fi
+
+  if $NSO_CLONE_OK; then
+    _info "Running Nexus Sounds installer..."
+    if sudo -u "${TARGET_USER}" bash "${NSO_INSTALL}"; then
+      NSO_INSTALLED=true
+      _green "Nexus Sounds installed."
+    else
+      NSO_FAIL_MSG="Nexus Sounds installer exited with an error."
+    fi
+  else
+    NSO_FAIL_MSG="Could not clone Nexus Sounds repository."
+  fi
+
+  if [ -n "${NSO_FAIL_MSG}" ]; then
+    echo ""
+    _warn "${NSO_FAIL_MSG}"
+    _warn "Nexus Screen is fully operational without Nexus Sounds."
+    _warn "Retry Nexus Sounds later:"
+    _warn "  git clone ${NSO_REPO} ~/nexus-sounds && bash ~/nexus-sounds/deploy/public-install.sh"
+    echo ""
+  fi
+fi
+
 # ── Moonraker Update Manager ──────────────────────────────────────────────────
 _step "Moonraker Update Manager"
 
@@ -517,6 +602,26 @@ UMEOF
       _info "Nexus Video already registered in Moonraker Update Manager."
     fi
   fi
+
+  if $NSO_INSTALLED; then
+    if ! grep -q "\[update_manager nexus-sounds\]" "${MOONRAKER_CONF}"; then
+      _info "Registering Nexus Sounds in Moonraker Update Manager..."
+      cat >> "${MOONRAKER_CONF}" <<UMEOF
+
+# Nexus Sounds — added by bootstrap.sh
+[update_manager nexus-sounds]
+type: git_repo
+path: ${NSO_DIR}
+origin: ${NSO_REPO}
+primary_branch: main
+is_system_service: False
+managed_services: nexus-sounds
+UMEOF
+      _green "Nexus Sounds registered."
+    else
+      _info "Nexus Sounds already registered in Moonraker Update Manager."
+    fi
+  fi
 else
   _warn "moonraker.conf not found — skipping automatic registration."
   _warn "Add update_manager blocks manually from docs/moonraker-update-manager.md"
@@ -531,6 +636,11 @@ printf '  %-36s %s\n' "nexus-screen.service" "${NS_STATE}"
 if $NV_INSTALLED; then
   NV_STATE="$(systemctl is-active nexus-video 2>/dev/null || printf 'inactive')"
   printf '  %-36s %s\n' "nexus-video.service" "${NV_STATE}"
+fi
+
+if $NSO_INSTALLED; then
+  NSO_STATE="$(systemctl --user is-active nexus-sounds 2>/dev/null || printf 'inactive')"
+  printf '  %-36s %s\n' "nexus-sounds.service (user)" "${NSO_STATE}"
 fi
 
 # ── final summary ─────────────────────────────────────────────────────────────
@@ -548,7 +658,15 @@ elif $INSTALL_NV; then
 else
   printf "  │  ·  %-47s│\n" "Nexus Video: not installed (optional)"
 fi
-printf "  │  ·  %-47s│\n" "Nexus Sounds: Coming Soon"
+if $NSO_INSTALLED; then
+  printf "  │  ✓  %-47s│\n" "Nexus Sounds → ${NSO_DIR}"
+elif [ -n "${NSO_FAIL_MSG}" ]; then
+  printf "  │  ✗  %-47s│\n" "Nexus Sounds: install failed (NS still works)"
+elif $INSTALL_NSO; then
+  printf "  │  ✗  %-47s│\n" "Nexus Sounds: not installed (see warning above)"
+else
+  printf "  │  ·  %-47s│\n" "Nexus Sounds: not installed (optional)"
+fi
 echo "  │                                                     │"
 echo "  │  Nexus Screen starts automatically at next boot.    │"
 echo "  └─────────────────────────────────────────────────────┘"
@@ -556,9 +674,16 @@ echo ""
 _info "To start now:  sudo systemctl start nexus-screen"
 if ! $NV_INSTALLED && ! $INSTALL_NV; then
   _info "To add Nexus Video later:"
-  _info "  git clone ${NV_REPO} ~/nexus-video && bash ~/nexus-video/deploy/install.sh"
+  _info "  bash <(curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh) --with-video"
 fi
 if $NV_INSTALLED; then
   _info "Nexus Video:   sudo systemctl start nexus-video"
+fi
+if ! $NSO_INSTALLED && ! $INSTALL_NSO; then
+  _info "To add Nexus Sounds later:"
+  _info "  bash <(curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh) --with-sounds"
+fi
+if $NSO_INSTALLED; then
+  _info "Nexus Sounds:  systemctl --user start nexus-sounds"
 fi
 echo ""
