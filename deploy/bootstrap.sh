@@ -511,7 +511,7 @@ if $INSTALL_NV; then
     _warn "${NV_FAIL_MSG}"
     _warn "Nexus Screen is fully operational without Nexus Video."
     _warn "Retry Nexus Video later:"
-    _warn "  git clone ${NV_REPO} ~/nexus-video && bash ~/nexus-video/deploy/install.sh"
+    _warn "  git clone ${NV_REPO} ~/nexus-video && sudo bash ~/nexus-video/deploy/public-install.sh"
     echo ""
   fi
 fi
@@ -538,8 +538,19 @@ if $INSTALL_NSO; then
   fi
 
   if $NSO_CLONE_OK; then
+    # Auto-install NSO-specific deps (alsa-utils, websockets, rsync) if missing
+    _NSO_APT=""
+    command -v aplay &>/dev/null    || _NSO_APT="${_NSO_APT:+${_NSO_APT} }alsa-utils"
+    command -v rsync &>/dev/null    || _NSO_APT="${_NSO_APT:+${_NSO_APT} }rsync"
+    python3 -c "import websockets" 2>/dev/null || _NSO_APT="${_NSO_APT:+${_NSO_APT} }python3-websockets"
+    if [ -n "${_NSO_APT}" ]; then
+      _info "Installing Nexus Sounds dependencies: ${_NSO_APT}"
+      # shellcheck disable=SC2086
+      sudo apt-get install -y ${_NSO_APT}
+    fi
+
     _info "Running Nexus Sounds installer..."
-    if sudo -u "${TARGET_USER}" bash "${NSO_INSTALL}"; then
+    if sudo bash "${NSO_INSTALL}"; then
       NSO_INSTALLED=true
       _green "Nexus Sounds installed."
     else
