@@ -124,6 +124,38 @@ _ask() {
   fi
 }
 
+# ── welcome & component selection ────────────────────────────────────────────
+printf '\n'
+printf '  \033[1m╔══════════════════════════════════════╗\033[0m\n'
+printf '  \033[1m║   THE O.M. PROJECT                   ║\033[0m\n'
+printf '  \033[1m║   NEXUS INSTALLER                    ║\033[0m\n'
+printf '  \033[1m╚══════════════════════════════════════╝\033[0m\n'
+printf '\n'
+printf '  %-24s %s\n' "Nexus Screen"  "Required"
+printf '  %-24s %s\n' "Nexus Sounds"  "Optional — audio notifications"
+printf '  %-24s %s\n' "Nexus Video"   "Optional — boot splash videos"
+printf '\n'
+
+# If the user has not specified addons via flags, ask now (before preflight)
+# so they know the full plan before any changes begin.
+if ! $OPT_YES && ! $OPT_UNINSTALL; then
+  if [ -z "${OPT_WITH_SOUNDS}" ]; then
+    _nso_pre="$(_ask "  Install Nexus Sounds? [y/N] " "n")"
+    case "${_nso_pre}" in
+      y|Y|yes|Yes|YES) OPT_WITH_SOUNDS="yes" ;;
+      *) OPT_WITH_SOUNDS="no" ;;
+    esac
+  fi
+  if [ -z "${OPT_WITH_VIDEO}" ]; then
+    _nv_pre="$(_ask "  Install Nexus Video?  [y/N] " "n")"
+    case "${_nv_pre}" in
+      y|Y|yes|Yes|YES) OPT_WITH_VIDEO="yes" ;;
+      *) OPT_WITH_VIDEO="no" ;;
+    esac
+  fi
+  printf '\n'
+fi
+
 # ── preflight ─────────────────────────────────────────────────────────────────
 
 _step "Nexus Screen — System Compatibility Check"
@@ -367,9 +399,17 @@ echo ""
 echo "  ┌─────────────────────────────────────────────────────┐"
 echo "  │  What will happen                                   │"
 echo "  │                                                     │"
-printf "  │  ✓  %-47s│\n" "Nexus Screen → ${NS_DIR}"
-echo "  │  ?  Nexus Video → will ask after installation       │"
-echo "  │  ?  Nexus Sounds → will ask after installation     │"
+printf "  │  ✓  %-47s│\n" "Nexus Screen"
+if [ "${OPT_WITH_SOUNDS}" = "yes" ]; then
+  printf "  │  ✓  %-47s│\n" "Nexus Sounds  (will install)"
+else
+  printf "  │  ·  %-47s│\n" "Nexus Sounds  (skipped)"
+fi
+if [ "${OPT_WITH_VIDEO}" = "yes" ]; then
+  printf "  │  ✓  %-47s│\n" "Nexus Video   (will install)"
+else
+  printf "  │  ·  %-47s│\n" "Nexus Video   (skipped)"
+fi
 if $OPT_DRY_RUN; then
 echo "  │                                                     │"
 printf "  │  %-51s│\n" "DRY RUN — no changes will be made"
@@ -393,6 +433,14 @@ fi
 
 # ── clone / update Nexus Screen ───────────────────────────────────────────────
 _step "Installing Nexus Screen"
+
+# If NS dir exists but has no .git (rsync-installed or corrupted), switch to repair
+if $NS_EXISTS && [ ! -d "${NS_DIR}/.git" ] && [ "$INSTALL_MODE" != "repair" ]; then
+  _warn "${NS_DIR} exists but has no git repository — switching to repair mode."
+  _warn "A backup will be saved before replacing the directory."
+  INSTALL_MODE="repair"
+  OPT_REPAIR=true
+fi
 
 if $NS_EXISTS && [ "$INSTALL_MODE" = "update" ]; then
   _info "Updating Nexus Screen..."
@@ -418,55 +466,13 @@ echo ""
 printf '\033[1;32mNEXUS SCREEN INSTALLED SUCCESSFULLY\033[0m\n'
 echo ""
 
-# ── Nexus Video addon (prompt AFTER Nexus Screen installs) ───────────────────
+# ── resolve addon selections ──────────────────────────────────────────────────
+# OPT_WITH_VIDEO / OPT_WITH_SOUNDS are now fully resolved (set by flags,
+# --yes default, or the upfront component selector).
 INSTALL_NV=false
-if [ -n "${OPT_WITH_VIDEO}" ]; then
-  [ "${OPT_WITH_VIDEO}" = "yes" ] && INSTALL_NV=true
-elif $OPT_YES; then
-  INSTALL_NV=false
-else
-  echo "  ┌─────────────────────────────────────────────────────┐"
-  echo "  │  Optional Addon: Nexus Video                        │"
-  echo "  │                                                     │"
-  echo "  │  Animated boot splash with video packs.            │"
-  echo "  │  Requires /dev/fb0 framebuffer display.            │"
-  echo "  │  Adds ~20 MB (3 built-in packs included).          │"
-  echo "  │                                                     │"
-  echo "  │  Can also be added later (see README).              │"
-  echo "  └─────────────────────────────────────────────────────┘"
-  echo ""
-  _nv_ans="$(_ask "  Install Nexus Video? [y/N] " "n")"
-  case "${_nv_ans}" in
-    y|Y|yes|Yes|YES) INSTALL_NV=true ;;
-    *) INSTALL_NV=false ;;
-  esac
-  echo ""
-fi
-
-# ── Nexus Sounds addon (prompt AFTER Nexus Screen installs) ──────────────────
 INSTALL_NSO=false
-if [ -n "${OPT_WITH_SOUNDS}" ]; then
-  [ "${OPT_WITH_SOUNDS}" = "yes" ] && INSTALL_NSO=true
-elif $OPT_YES; then
-  INSTALL_NSO=false
-else
-  echo "  ┌─────────────────────────────────────────────────────┐"
-  echo "  │  Optional Addon: Nexus Sounds                       │"
-  echo "  │                                                     │"
-  echo "  │  Audio notifications for print events.             │"
-  echo "  │  Custom WAV sounds: drop files in packs/custom/.   │"
-  echo "  │  Runs as a user-mode systemd service.              │"
-  echo "  │                                                     │"
-  echo "  │  Can also be added later (see README).              │"
-  echo "  └─────────────────────────────────────────────────────┘"
-  echo ""
-  _nso_ans="$(_ask "  Install Nexus Sounds? [y/N] " "n")"
-  case "${_nso_ans}" in
-    y|Y|yes|Yes|YES) INSTALL_NSO=true ;;
-    *) INSTALL_NSO=false ;;
-  esac
-  echo ""
-fi
+[ "${OPT_WITH_VIDEO}"  = "yes" ] && INSTALL_NV=true
+[ "${OPT_WITH_SOUNDS}" = "yes" ] && INSTALL_NSO=true
 
 # ── optional: install Nexus Video ─────────────────────────────────────────────
 NV_INSTALLED=false
@@ -480,6 +486,22 @@ if $INSTALL_NV; then
     _info "Updating Nexus Video..."
     if sudo -u "${TARGET_USER}" git -C "${NV_DIR}" pull --ff-only 2>&1 | _prefix "  git: "; then
       NV_CLONE_OK=true
+    fi
+  elif $NV_EXISTS; then
+    # Dir exists but no .git — clone to temp, preserve custom content, replace
+    _warn "${NV_DIR} exists but has no git repository — cloning fresh copy."
+    _NV_TMP="${NV_DIR}.bootstrap-tmp"
+    rm -rf "${_NV_TMP}"
+    if sudo -u "${TARGET_USER}" git clone --depth 1 --branch "${NV_BRANCH}" \
+        "${NV_REPO}" "${_NV_TMP}" 2>&1 | _prefix "  git: "; then
+      # Preserve packs/custom and config.json
+      [ -d "${NV_DIR}/packs/custom" ] && cp -a "${NV_DIR}/packs/custom/." "${_NV_TMP}/packs/custom/"
+      [ -f "${NV_DIR}/config.json"  ] && cp -a "${NV_DIR}/config.json"     "${_NV_TMP}/config.json"
+      rm -rf "${NV_DIR}"
+      mv "${_NV_TMP}" "${NV_DIR}"
+      NV_CLONE_OK=true
+    else
+      rm -rf "${_NV_TMP}"
     fi
   else
     _info "Cloning Nexus Video..."
@@ -528,6 +550,22 @@ if $INSTALL_NSO; then
     _info "Updating Nexus Sounds..."
     if sudo -u "${TARGET_USER}" git -C "${NSO_DIR}" pull --ff-only 2>&1 | _prefix "  git: "; then
       NSO_CLONE_OK=true
+    fi
+  elif $NSO_EXISTS; then
+    # Dir exists but no .git — clone to temp, preserve custom content, replace
+    _warn "${NSO_DIR} exists but has no git repository — cloning fresh copy."
+    _NSO_TMP="${NSO_DIR}.bootstrap-tmp"
+    rm -rf "${_NSO_TMP}"
+    if sudo -u "${TARGET_USER}" git clone --depth 1 --branch "${NSO_BRANCH}" \
+        "${NSO_REPO}" "${_NSO_TMP}" 2>&1 | _prefix "  git: "; then
+      # Preserve packs/custom and config.json
+      [ -d "${NSO_DIR}/packs/custom" ] && cp -a "${NSO_DIR}/packs/custom/." "${_NSO_TMP}/packs/custom/"
+      [ -f "${NSO_DIR}/config.json"  ] && cp -a "${NSO_DIR}/config.json"     "${_NSO_TMP}/config.json"
+      rm -rf "${NSO_DIR}"
+      mv "${_NSO_TMP}" "${NSO_DIR}"
+      NSO_CLONE_OK=true
+    else
+      rm -rf "${_NSO_TMP}"
     fi
   else
     _info "Cloning Nexus Sounds..."
