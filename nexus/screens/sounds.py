@@ -52,6 +52,7 @@ try:
         get_event_sounds,
         set_event_sound,
         list_sounds_for_pack,
+        list_custom_sounds,
         preview_file,
     )
     _BRIDGE_OK = True
@@ -523,11 +524,16 @@ class EventSoundScreen(SubScreen):
         self._btn_enable.setChecked(enabled)
         self._btn_enable.clicked.connect(self._on_toggle_enable)
 
-        # Sound choices list
+        # Sound choices list — pack sounds first, then custom sounds
         choices: list[tuple[Optional[str], str]] = [(None, "— OFF —")]
         if _BRIDGE_OK:
+            pack_filenames: set[str] = set()
             for item in list_sounds_for_pack():
                 choices.append((item["filename"], item["filename"]))
+                pack_filenames.add(item["filename"])
+            for item in list_custom_sounds():
+                if item["filename"] not in pack_filenames:
+                    choices.append((item["filename"], item["filename"]))
 
         self._scroll = QScrollArea(parent=self)
         self._scroll.setWidgetResizable(True)

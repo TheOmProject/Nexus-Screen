@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from PyQt6.QtCore import QEvent, QRect, QRectF, Qt
+from PyQt6.QtCore import QEvent, QRect, QRectF, Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QImage, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import QWidget
 
@@ -39,14 +39,17 @@ try:
     from nexus_video.settings_bridge import (
         VALID_SCALES, DEFAULT_PACK, DEFAULT_SCALE,
         build_is_ready, get_selection, set_selection,
+        list_raw_videos, build_raw_video_pack,
     )
-    from nexus_video.packs import discover_packs, PackInfo
+    from nexus_video.packs import discover_packs, PackInfo, ValidationResult
     _BRIDGE_OK = True
 except ImportError:
     _BRIDGE_OK = False
     VALID_SCALES  = ("fit", "fill", "stretch")
     DEFAULT_PACK  = "nexus_signature"
     DEFAULT_SCALE = "fit"
+    list_raw_videos      = None   # type: ignore[assignment]
+    build_raw_video_pack = None   # type: ignore[assignment]
 
 
 # ── adaptive layout constants ─────────────────────────────────────────────────
@@ -665,6 +668,8 @@ class StartupVideoScreen(SubScreen):
         self._packs: list    = []
         self._pending_pack: Optional[str] = None
         self._preview_screen = None   # created once on first use; reused per pack
+        self._raw_video_paths: dict[str, Path] = {}   # pack_id → raw MP4 path
+        self._build_thread: Optional[QThread] = None
 
         # ── tab list ─────────────────────────────────────────────────────────
         from nexus.widgets.panels import ListPanel
@@ -714,6 +719,7 @@ class StartupVideoScreen(SubScreen):
 
     def _refresh(self) -> None:
         """Load current selection and pack list; update all tabs."""
+        self._raw_video_paths.clear()
         if _BRIDGE_OK:
             self._selected_pack, self._selected_scale = get_selection()
             builtin_dir = _packs_root() / "builtin"
@@ -723,6 +729,24 @@ class StartupVideoScreen(SubScreen):
                 self._packs = discover_packs(builtin_dir, custom_dir)
             except Exception:
                 self._packs = []
+
+            # Also discover raw video files (no pack.json needed)
+            try:
+                for item in list_raw_videos(_build_dir(), custom_dir):
+                    pid = item["pack_id"]
+                    self._raw_video_paths[pid] = item["path"]
+                    self._packs.append(PackInfo(
+                        pack_dir=item["path"].parent,
+                        meta={
+                            "id":          pid,
+                            "name":        item["name"],
+                            "description": "Custom video file",
+                            "type":        "custom",
+                        },
+                        validation=ValidationResult(valid=True),
+                    ))
+            except Exception:
+                pass
 
         bd = _build_dir()
         self._pack_page.rebuild(self._packs, self._selected_pack, bd)
@@ -785,6 +809,13 @@ class StartupVideoScreen(SubScreen):
     def apply_pack(self, pack_id: str) -> None:
         """Persist the pending pack selection. Called from the popup's Apply button."""
         self._pending_pack = None
+
+        # Raw video not yet built → build first in background thread
+        raw_path = self._raw_video_paths.get(pack_id)
+        if raw_path and not build_is_ready(_build_dir(), pack_id) and _BRIDGE_OK:
+            self._build_and_apply(pack_id, raw_path)
+            return
+
         ok = self.select_pack(pack_id)
         if ok:
             name = next((p.name for p in self._packs if p.pack_id == pack_id), pack_id)
@@ -800,21 +831,85 @@ class StartupVideoScreen(SubScreen):
                 is_error=True,
             )
 
+    def _build_and_apply(self, pack_id: str, raw_path: Path) -> None:
+        """Build a raw video pack in a background thread, then apply it."""
+        name = next((p.name for p in self._packs if p.pack_id == pack_id), pack_id)
+        self._msg_popup.show_message(
+            "Preparing Video…",
+            f"{name}\nCopying and extracting thumbnail.\nPlease wait.",
+            is_error=False,
+        )
+
+        class _Worker(QThread):
+            done = pyqtSignal(str)   # error message, empty = success
+
+            def __init__(self, path: Path, build_dir: Path, parent=None):
+                super().__init__(parent)
+                self._path      = path
+                self._build_dir = build_dir
+
+            def run(self) -> None:
+                try:
+                    build_raw_video_pack(self._path, self._build_dir)
+                    self.done.emit("")
+                except Exception as exc:
+                    self.done.emit(str(exc))
+
+        self._build_thread = _Worker(raw_path, _build_dir(), parent=self)
+        self._build_thread.done.connect(
+            lambda err, pid=pack_id: self._on_build_done(pid, err))
+        self._build_thread.start()
+
+    def _on_build_done(self, pack_id: str, error: str) -> None:
+        """Called on the main thread after the background build finishes."""
+        self._msg_popup.hide()
+        if error:
+            self._msg_popup.show_message(
+                "Build Failed",
+                f"Could not prepare video:\n{error[:100]}",
+                is_error=True,
+            )
+            return
+        ok = self.select_pack(pack_id)
+        if ok:
+            name = next((p.name for p in self._packs if p.pack_id == pack_id), pack_id)
+            self._refresh()   # reload to show thumbnail now it is built
+            self._msg_popup.show_message(
+                "Video Applied Successfully",
+                f"{name}\nYour selected intro will play on the next startup.",
+                is_error=False,
+            )
+        else:
+            self._msg_popup.show_message(
+                "Apply Failed",
+                "Could not save to config. Check disk space or permissions.",
+                is_error=True,
+            )
+
     def preview_pack(self, pack_id: str, pack_name: str) -> None:
         """Launch VideoPreviewScreen for the pending pack.
 
-        A single VideoPreviewScreen instance is created on first use and reused for
-        every subsequent preview. It is added to ctl.stack once so that ctl.push()
-        (which calls stack.setCurrentWidget) can actually make it visible.
+        For raw video packs that haven't been built yet, the raw MP4 is passed
+        directly to VideoPreviewScreen (it plays via ffmpeg without a build step).
+        A single VideoPreviewScreen instance is created on first use and reused
+        for every subsequent preview.
         """
         from nexus.screens.video_preview import VideoPreviewScreen
         if self._preview_screen is None:
             self._preview_screen = VideoPreviewScreen(ctl=self._ctl)
             if self._ctl is not None:
                 self._ctl.stack.addWidget(self._preview_screen)
-        bd    = _build_dir()
-        intro = bd / pack_id / "intro.mp4"
-        loop  = bd / pack_id / "loop.mp4"
+        bd = _build_dir()
+
+        # Raw video pack not yet built → preview the raw file directly
+        raw_path = self._raw_video_paths.get(pack_id)
+        if raw_path and not build_is_ready(bd, pack_id):
+            intro = raw_path
+            loop  = raw_path
+        else:
+            intro = bd / pack_id / "intro.mp4"
+            loop  = bd / pack_id / "loop.mp4"
+
         self._preview_screen.load_pack(
             intro if intro.exists() else None,
             loop  if loop.exists()  else None,
