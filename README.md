@@ -119,83 +119,51 @@ Community reports of working or failing configurations are welcome via
 curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash
 ```
 
-That's it. The installer will:
+> Run as your normal user, not as root. The script uses `sudo` only where required.
 
-1. Check hardware compatibility — blocks with a clear message if requirements are not met
-2. Offer to install missing packages automatically (`python3-pyqt6`, `git`, etc.)
-3. Install Nexus Screen
-4. Ask whether to also install **Nexus Video** (optional animated boot splash)
-5. Register both repos with Moonraker Update Manager
+The installer automatically:
 
-> Run as your normal user, not as root. The script uses `sudo` only where it's required.
+1. Checks hardware and system compatibility — stops with a clear message if requirements are not met
+2. Installs necessary dependencies (`python3-pyqt6`, `git`, etc.)
+3. Installs Nexus Screen
+4. Offers **Nexus Sounds** as an optional add-on (audio notifications for printer events)
+5. Offers **Nexus Video** as an optional add-on (animated boot splash)
+6. Configures the necessary systemd services
+7. Registers all installed components with Moonraker Update Manager
 
-**Non-interactive (headless / CI):**
-
-```bash
-# Nexus Screen only
-curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --yes
-
-# Nexus Screen + Nexus Video
-curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --yes --with-video
-
-# Compatibility check only — no changes made
-curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --dry-run
-```
-
-For manual installation, repair, rollback, and advanced options see
+For non-interactive, repair, rollback, and advanced options see
 **[docs/INSTALLATION.md](docs/INSTALLATION.md)**.
 
 ---
 
 ## Optional Addons
 
-### Nexus Video — Startup Animations
+Both add-ons are offered interactively during the bootstrap install above.
+They can also be added to an existing Nexus Screen installation at any time.
 
-[Nexus Video](https://github.com/TheOmProject/Nexus-Video) is an independent, optional addon
-that replaces the default static boot splash with animated video packs. It is **not required**
-for Nexus Screen to function.
+### Nexus Video — Animated Boot Splash
 
-When Nexus Video is not installed, Nexus Screen displays an installation notice in the
-**Settings → Startup Video** screen rather than crashing.
+[Nexus Video](https://github.com/TheOmProject/Nexus-Video) replaces the default static boot
+splash with animated video packs. When not installed, the **Settings → Startup Video** screen
+shows an installation notice.
 
-**Install via bootstrap (easiest):**
-```bash
-curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --with-video
-```
-
-**Add Nexus Video to an existing Nexus Screen installation:**
+**Add to an existing Nexus Screen installation:**
 ```bash
 git clone https://github.com/TheOmProject/Nexus-Video.git ~/nexus-video
 sudo bash ~/nexus-video/deploy/public-install.sh
 ```
 
-See the [Nexus Video repository](https://github.com/TheOmProject/Nexus-Video) for custom pack
-documentation, hardware requirements, and troubleshooting.
-
 ### Nexus Sounds — Audio Notifications
 
-[Nexus Sounds](https://github.com/TheOmProject/Nexus-Sounds) is an **optional add-on** that
-plays WAV notification sounds for printer events (startup, print start, print complete, print error,
-and more). It is configured through the **Settings → Sounds** screen added in this release.
+[Nexus Sounds](https://github.com/TheOmProject/Nexus-Sounds) plays WAV notification sounds for
+printer events (startup, print start, print complete, error, and more). Configured from
+**Settings → Sounds**. When not installed, that screen shows an installation notice.
 
-**Install via bootstrap (easiest):**
-```bash
-curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --with-sounds
-```
-
-Or install all three addons together:
-```bash
-curl -fsSL https://raw.githubusercontent.com/TheOmProject/Nexus-Screen/main/deploy/bootstrap.sh | bash -s -- --with-sounds --with-video
-```
-
-**Standalone — add to an existing Nexus Screen installation:**
+**Add to an existing Nexus Screen installation:**
 ```bash
 git clone https://github.com/TheOmProject/Nexus-Sounds.git ~/nexus-sounds
-bash ~/nexus-sounds/deploy/public-install.sh
+sudo bash ~/nexus-sounds/deploy/public-install.sh
 ```
-
-When Nexus Sounds is not installed, the Sounds screen shows an installation notice
-rather than crashing. Nexus Screen functions normally without it.
 
 ---
 

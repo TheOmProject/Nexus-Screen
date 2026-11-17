@@ -95,13 +95,22 @@ def _packs_root() -> Path:
 # ── thumbnail loading ─────────────────────────────────────────────────────────
 
 def load_still_thumbnail(still_path: Path, thumb_w: int, thumb_h: int) -> Optional[QPixmap]:
-    """Load a raw RGB565 still (always 800×480) and return a scaled QPixmap."""
+    """Load a raw framebuffer still and return a scaled QPixmap.
+
+    Supports 16bpp RGB565 (Micron, 768 000 bytes at 800×480) and
+    32bpp BGRA (BCM2708/StealthChanger, 1 536 000 bytes at 800×480).
+    Returns None when the file size does not match either known format.
+    """
     try:
         data = still_path.read_bytes()
-        if len(data) != 800 * 480 * 2:
+        n = len(data)
+        if n == 800 * 480 * 2:
+            img = QImage(bytes(data), 800, 480, 800 * 2, QImage.Format.Format_RGB16)
+        elif n == 800 * 480 * 4:
+            # BCM2708 memory layout: [B][G][R][A] → Qt Format_BGRA8888
+            img = QImage(bytes(data), 800, 480, 800 * 4, QImage.Format.Format_BGRA8888)
+        else:
             return None
-        raw_bytes = bytes(data)
-        img = QImage(raw_bytes, 800, 480, 800 * 2, QImage.Format.Format_RGB16)
         px = QPixmap.fromImage(img)
         return px.scaled(thumb_w, thumb_h,
                          Qt.AspectRatioMode.KeepAspectRatio,
@@ -670,6 +679,7 @@ class StartupVideoScreen(SubScreen):
         self._preview_screen = None   # created once on first use; reused per pack
         self._raw_video_paths: dict[str, Path] = {}   # pack_id → raw MP4 path
         self._build_thread: Optional[QThread] = None
+        self._regen_thread: Optional[QThread] = None
 
         # ── tab list ─────────────────────────────────────────────────────────
         from nexus.widgets.panels import ListPanel
@@ -752,6 +762,7 @@ class StartupVideoScreen(SubScreen):
         self._pack_page.rebuild(self._packs, self._selected_pack, bd)
         self._scale_page.set_scale(self._selected_scale)
         self._update_status()
+        self._regen_missing_stills()
 
     def _update_status(self) -> None:
         bd = _build_dir()
@@ -771,6 +782,64 @@ class StartupVideoScreen(SubScreen):
                 colour = theme.AMBER.name()
             rows.append((name, label, colour))
         self._status_page.set_rows(rows)
+
+    # ── background still regeneration ────────────────────────────────────────
+
+    def _regen_missing_stills(self) -> None:
+        """Regenerate still.rgb565 for packs that have MP4 but missing or wrong-size still.
+
+        Runs in a QThread so the UI stays responsive.  On completion, pack tiles
+        are refreshed to pick up the newly generated thumbnails.
+        """
+        if not _BRIDGE_OK or (self._regen_thread and self._regen_thread.isRunning()):
+            return
+        try:
+            from nexus_video.detect import detect_display
+            display = detect_display()
+        except Exception:
+            return
+        expected = display.frame_bytes
+        bd = _build_dir()
+        needs_regen: list[tuple[str, Path]] = []
+        for info in self._packs:
+            pid = info.pack_id
+            still = bd / pid / "still.rgb565"
+            intro = bd / pid / "intro.mp4"
+            if intro.exists() and (not still.exists() or still.stat().st_size != expected):
+                needs_regen.append((pid, bd / pid))
+        if not needs_regen:
+            return
+
+        class _RegenWorker(QThread):
+            done = pyqtSignal()
+
+            def __init__(self, packs, display_info, parent=None):
+                super().__init__(parent)
+                self._packs   = packs
+                self._display = display_info
+
+            def run(self) -> None:
+                from nexus_video.convert import generate_still
+                for pid, out_dir in self._packs:
+                    intro = out_dir / "intro.mp4"
+                    try:
+                        generate_still(out_dir, self._display, source=intro)
+                    except Exception:
+                        pass
+                self.done.emit()
+
+        self._regen_thread = _RegenWorker(needs_regen, display, parent=self)
+        self._regen_thread.done.connect(self._on_stills_regenerated)
+        self._regen_thread.start()
+
+    def _on_stills_regenerated(self) -> None:
+        """Called when background still regen finishes; refresh pack tile thumbnails."""
+        bd = _build_dir()
+        for pid, tile in self._pack_page.tiles.items():
+            still = bd / pid / "still.rgb565"
+            if still.exists() and tile.thumb is None:
+                tile.thumb = load_still_thumbnail(still, _THUMB_W, _THUMB_H)
+                tile.update()
 
     # ── selection actions ─────────────────────────────────────────────────────
 

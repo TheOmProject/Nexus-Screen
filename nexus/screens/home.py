@@ -350,21 +350,27 @@ class AddonsCard(QWidget):
     def _paint_stealthchanger(self, p, r, tools, active, th=52, scale=1.0):
         self._section_title(p, r, icons.wrench, "StealthChanger")
         n = len(tools)
-        pitch = min(31.0 * scale, (r.width() - 4) / max(n, 1))
-        tw = pitch - 3
+        if n == 0:
+            return
+        # Distribute tools evenly across the full available width — no pitch cap,
+        # so 5 tools on a 412 px card each get ~78 px instead of being left-crammed.
+        pitch = (r.width() - 4) / n
+        slot_w = min(pitch - 2, 40.0)   # icon highlight box width (capped for aesthetics)
         top = r.y() + 30
-        for i, name in enumerate(tools):
-            t = QRectF(r.x() + 2 + i * pitch, top, tw, th)
+        for i in range(n):
+            col_cx = r.x() + 2 + (i + 0.5) * pitch   # column centre x
+            t = QRectF(col_cx - slot_w / 2, top, slot_w, th)
             on = i == active
             if on:
-                halo = red_glow(int(tw), int(th), 5.0, 6, 0.7)
+                halo = red_glow(int(slot_w), int(th), 5.0, 6, 0.7)
                 p.drawPixmap(int(t.x()) - 6, int(t.y()) - 6, halo)
                 paint_red_fill(p, t, 5.0, 0.85)
             colour = QColor(255, 50, 38) if on else QColor(112, 118, 126)
-            icons.toolhead(p, QRectF(t.center().x() - 8, t.y() + 7, 16, 21), colour)
+            icons.toolhead(p, QRectF(col_cx - 8, t.y() + 7, 16, 21), colour)
             p.setFont(theme.font(theme.CAPTION, QFont.Weight.DemiBold))
             p.setPen(QColor(255, 70, 58) if on else theme.DIM)
-            p.drawText(QRectF(t.x(), t.bottom() - 18, t.width(), 14), Qt.AlignmentFlag.AlignCenter, name)
+            p.drawText(QRectF(col_cx - pitch / 2, t.bottom() - 18, pitch, 14),
+                       Qt.AlignmentFlag.AlignCenter, f"T{i}")
 
     def _paint_boxturtle(self, p, r, lanes, th=52):
         self._section_title(p, r, icons.spool, "BoxTurtle")
